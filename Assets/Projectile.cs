@@ -1,103 +1,147 @@
+using System.Collections.Generic;
 using UnityEngine;
 using static Launch;
 
 public class Projectile : MonoBehaviour
 {
-    public Transform Target;
+    [Header("Scene refs")]
+    public Transform launcher;
+    public Transform target;
 
-    public float launchAngle;
-    public float launchSpeed;
-    private bool landed = false;
-    private bool madeIt = false;
+    [Header("Launch parameters")]
+    public float launchAngleDeg = 25f;
+    public float minSpeed = 0f;
+    public float maxSpeed = 30f;
 
-    public float dragCoefficient = 0.47f;
+    [Header("Physics")]
     public float mass = 0.226f;
+    public float dragCoefficient = 0.47f;
+    public float airDensity = 1.225f;
 
-    public float p = 1.225f;
-    public float crosssection;
-    //public Vector2 init_v;
-    public bool launched = false;
-    public Vector2 v;
-    public Vector2 a;
-    public Vector2 f;
+    [Header("Results")]
+    public List<Traj> trajectories = new List<Traj>();
+
+    Vector2 v;
+    Vector2 a;
+
+    bool launched;
+    bool landed;
+    bool madeIt;
+
+    float crossSection;
+
+    float currentMin;
+    float currentMax;
+    float pivot;
+    bool searching;
 
     void Start()
     {
-        Target = GameObject.FindGameObjectWithTag("Finish").transform;
-        float r = transform.localScale.x / 2;
-        crosssection = Mathf.PI * r * r;
-        a = Vector2.zero;
-        f = Vector2.zero;
+        float r = transform.localScale.x * 0.5f;
+        crossSection = Mathf.PI * r * r;
+
+        currentMin = minSpeed;
+        currentMax = maxSpeed;
+        pivot = (currentMin + currentMax) * 0.5f;
     }
 
-    //void FixedUpdate()
-    //{
-    //    f = 9.81f * new Vector2(0, -1) * mass;
-    //    if (launched)
-    //    {
-    //        float fd = 0.5f * p * v.magnitude * v.magnitude * dragCoefficient * crosssection;
-    //        f += -fd * v.normalized;
-    //        a = f / mass;
-    //        v = v + a * Time.fixedDeltaTime;
-    //        transform.position = new Vector3(
-    //            transform.position.x + v.x * Time.fixedDeltaTime,
-    //            transform.position.y + v.y * Time.fixedDeltaTime,
-    //            transform.position.z
-    //        );
-    //    }
-    //}
-
-    public Traj Launch(Vector2 init_v)
+    void Update()
     {
-        this.v = init_v;
-        this.launchSpeed = init_v.magnitude;
-        this.launchAngle = Mathf.Atan2(init_v.y, init_v.x) * Mathf.Rad2Deg;
-        this.launched = true;
-
-        while (!landed)
+        if (Input.GetKeyDown(KeyCode.Space) && !searching)
         {
-            f = 9.81f * new Vector2(0, -1) * mass;
-            float fd = 0.5f * p * v.magnitude * v.magnitude * dragCoefficient * crosssection;
-            f += -fd * v.normalized;
-            a = f / mass;
-            v = v + a * Time.fixedDeltaTime;
-            transform.position = new Vector3(
-                transform.position.x + v.x * Time.fixedDeltaTime,
-                transform.position.y + v.y * Time.fixedDeltaTime,
-                transform.position.z
-            );
+            trajectories.Clear();
+            searching = true;
+            StartNextShot();
+        }
+    }
+
+    void FixedUpdate()
+    {
+        if (!launched || landed)
+            return;
+
+        Vector2 force = mass * Physics2D.gravity;
+
+        float speed = v.magnitude;
+        if (speed > 0f)
+        {
+            float fd = 0.5f * airDensity * speed * speed * dragCoefficient * crossSection;
+            force += -fd * v.normalized;
         }
 
-        return new Traj
+        a = force / mass;
+        v += a * Time.fixedDeltaTime;
+
+        transform.position += (Vector3)(v * Time.fixedDeltaTime);
+    }
+
+    void StartNextShot()
+    {
+        ResetProjectile();
+
+        float rad = launchAngleDeg * Mathf.Deg2Rad;
+        v = new Vector2(Mathf.Cos(rad), Mathf.Sin(rad)) * pivot;
+
+        launched = true;
+    }
+
+    void EvaluateShot()
+    {
+        float xError = transform.position.x - target.position.x;
+
+        Traj t = new Traj
         {
-            launchAngle = this.launchAngle,
-            launchSpeed = this.launchSpeed,
-            xError = transform.position.x - Target.position.x,
-            madeIt = this.madeIt
+            launchAngle = launchAngleDeg,
+            launchSpeed = pivot,
+            xError = xError,
+            madeIt = madeIt
         };
+
+        trajectories.Add(t);
+
+        if (madeIt)
+        {
+            Debug.Log($"Solved! speed={pivot}  attempts={trajectories.Count}");
+            searching = false;
+            return;
+        }
+
+        if (xError > 0)
+            currentMax = pivot;
+        else
+            currentMin = pivot;
+
+        pivot = (currentMin + currentMax) * 0.5f;
+
+        StartNextShot();
     }
 
-    public void OnTriggerEnter2D(Collider2D collision)
+    void ResetProjectile()
     {
-        if (collision.gameObject.tag == "Kill")
-        {
-            this.landed = true;
-            this.madeIt = false;
-        }
-        else if (collision.gameObject.tag == "Respawn")
-        {
-            this.madeIt = true;
-        }
-        else if (collision.gameObject.tag == "Finish" && this.madeIt)
-        {
-            this.landed = true;
-        }
+        transform.position = launcher.position;
+        v = Vector2.zero;
+        a = Vector2.zero;
+        launched = false;
+        landed = false;
+        madeIt = false;
     }
 
-    public void ResetProjectile(Transform transform)
+    void OnTriggerEnter2D(Collider2D collision)
     {
-        this.transform.position = transform.position;
-        this.launched = false;
-        this.v = Vector2.zero;
+        if (collision.CompareTag("Kill"))
+        {
+            landed = true;
+            madeIt = false;
+            EvaluateShot();
+        }
+        else if (collision.CompareTag("Respawn"))
+        {
+            madeIt = true;
+        }
+        else if (collision.CompareTag("Finish") && madeIt)
+        {
+            landed = true;
+            EvaluateShot();
+        }
     }
 }
