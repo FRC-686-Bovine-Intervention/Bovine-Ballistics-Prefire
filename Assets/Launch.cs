@@ -6,25 +6,26 @@ public class Launch : MonoBehaviour
 {
     //public List<Projectile> projectiles;
     //public List<bool> madeIt;
-    public float minSpeed = 0f;
-    public float maxSpeed = 30f;
-    private float currentMinSpeed;
-    private float currentMaxSpeed;
-    private float startingPivot;
+    //public float minSpeed = 0f;
+    //public float maxSpeed = 30f;
+    //private float currentMinSpeed;
+    //private float currentMaxSpeed;
+    //private float startingPivot;
 
-    public Transform launchPoint;
-    public GameObject projectilePrefab;
-    public List<Traj> trajs;
+    //public Transform launchPoint;
+    //public GameObject projectilePrefab;
+    //public List<Traj> trajs;
 
     private void Start()
     {
-        currentMinSpeed = minSpeed;
-        currentMaxSpeed = maxSpeed;
-        startingPivot = (minSpeed + maxSpeed) / 2;
+        //currentMinSpeed = minSpeed;
+        //currentMaxSpeed = maxSpeed;
+        //startingPivot = (minSpeed + maxSpeed) / 2;
     }
 
-    public void ChangeAngle(float angle)
+    public void ChangePos(float x, float angle)
     {
+        transform.position.Set(x, transform.position.y, transform.position.z);
         transform.eulerAngles = new Vector3(0, 0, -angle);
     }
     //private void Update()
@@ -112,6 +113,10 @@ public class Launch : MonoBehaviour
         public float launchAngle;
         public float launchSpeed;
         public float xError;
+        public float x;
+        public float vx;
+        public float maxHeight;
+        public float deviance;
         public bool madeIt;
     }
 
