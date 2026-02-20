@@ -305,6 +305,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: '::'
   hasStarted: 0
+  target: {fileID: 0}
+  child: {fileID: 668998388}
+  fuel: {fileID: 0}
+  minAngle: 0
+  maxAngle: 0
+  minSpeed: 0
+  maxSpeed: 0
+  minVX: 0
+  maxVX: 0
+  minX: 0
+  maxX: 0
+  angleRes: 0
+  vxRes: 0
+  xRes: 0
+  maxSpeedTries: 0
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0
@@ -685,12 +700,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 38c7c1f8f1ca77e4e9035de6c9573919, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  rb: {fileID: 735499607}
   dragCoefficient: 0.47
   airDensity: 1.225
+  g: 9.81
+  v: {x: 0, y: 0}
+  p: {x: 0, y: 0}
   initV: {x: 1, y: 1}
-  start: {x: 0, y: 0}
+  initPos: {x: 0, y: 0}
   end: {x: 0, y: 0}
+  maxHeight: 0
+  simulating: 0
   madeIt: 0
   dead: 0
 --- !u!50 &735499607
@@ -701,7 +720,7 @@ Rigidbody2D:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 735499605}
-  m_BodyType: 0
+  m_BodyType: 2
   m_Simulated: 1
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 0
