@@ -336,18 +336,19 @@ MonoBehaviour:
   target: {fileID: 417951485}
   child: {fileID: 668998388}
   fuel: {fileID: 1489294362897707591, guid: 5ebb8fe7bc7a3834a8c394e83d2b2743, type: 3}
+  timescale: 30
   minAngle: 10
   maxAngle: 30
+  angleRes: 10
   minSpeed: 0
   maxSpeed: 40
+  maxSpeedTries: 30
   minVX: 0
   maxVX: 0
-  minX: 0
-  maxX: 10
-  angleRes: 10
   vxRes: 1
-  xRes: 20
-  maxSpeedTries: 30
+  minX: -7
+  maxX: -2
+  xRes: 10
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0
@@ -510,7 +511,7 @@ Transform:
   m_GameObject: {fileID: 577547828}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 6.982496, y: 1.8288, z: 0}
+  m_LocalPosition: {x: 0, y: 1.8288, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:

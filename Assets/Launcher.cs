@@ -18,23 +18,27 @@ public class Launcher : MonoBehaviour
 
     private static string Path => Application.persistentDataPath + "/data.txt";
 
-    /*----ALL PARAMETERS FOR SHOTOER HERE----*/
+    public float timescale;
+    /*----ALL PARAMETERS FOR SHOOTER HERE----*/
+    [Header("Angle Params")]
     public float minAngle;
     public float maxAngle;
+    public int angleRes;
 
+    [Header("Speed Params")]
     public float minSpeed;
     public float maxSpeed;
+    public int maxSpeedTries;
 
+    [Header("Velocity Params")]
     public float minVX;
     public float maxVX;
+    public int vxRes;
 
+    [Header("Position Params")]
     public float minX;
     public float maxX;
-
-    public int angleRes;
-    public int vxRes;
     public int xRes;
-    public int maxSpeedTries;
 
 
     void Start()
@@ -51,7 +55,7 @@ public class Launcher : MonoBehaviour
         //}
         if (Input.GetKeyDown(KeyCode.Space) && !hasStarted)
         {
-            Time.timeScale = 30f;
+            Time.timeScale = timescale;
             hasStarted = true;
             StartCoroutine(AllTrajectories());
         }
