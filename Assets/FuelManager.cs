@@ -72,6 +72,7 @@ public class FuelManager : MonoBehaviour
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
+        Debug.Log("Collided");
         if (collision.gameObject.CompareTag("Respawn"))
         {
             madeIt = true;
