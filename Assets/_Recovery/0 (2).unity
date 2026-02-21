@@ -336,7 +336,7 @@ MonoBehaviour:
   target: {fileID: 417951485}
   child: {fileID: 668998388}
   fuel: {fileID: 1489294362897707591, guid: 5ebb8fe7bc7a3834a8c394e83d2b2743, type: 3}
-  timescale: 60
+  timescale: 30
   minAngle: 10
   maxAngle: 30
   angleRes: 10
@@ -348,7 +348,7 @@ MonoBehaviour:
   vxRes: 1
   minX: -7
   maxX: -2
-  xRes: 1
+  xRes: 10
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0

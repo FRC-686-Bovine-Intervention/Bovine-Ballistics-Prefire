@@ -9,7 +9,7 @@ public class Launcher : MonoBehaviour
     public Trajectory mostRecentTrajectory = new Trajectory { madeIt = false };
     public Trajectory mostRecentSuccessfulTrajectory = new Trajectory { madeIt = true };
     public List<Trajectory> allTrajectories = new List<Trajectory>();
-    public List<Trajectory> validTrajectories = new List<Trajectory>();
+    public List<Trajectory> allValidTrajectories = new List<Trajectory>();
 
     public Transform target;
 
@@ -20,6 +20,9 @@ public class Launcher : MonoBehaviour
 
     public float timescale;
     /*----ALL PARAMETERS FOR SHOOTER HERE----*/
+    [Header("Shooter Params")]
+
+
     [Header("Angle Params")]
     public float minAngle;
     public float maxAngle;
@@ -55,6 +58,7 @@ public class Launcher : MonoBehaviour
         //}
         if (Input.GetKeyDown(KeyCode.Space) && !hasStarted)
         {
+            Debug.Log(Application.persistentDataPath);
             Time.timeScale = timescale;
             hasStarted = true;
             StartCoroutine(AllTrajectories());
@@ -89,6 +93,11 @@ public class Launcher : MonoBehaviour
 
         mostRecentTrajectory = traj;
         allTrajectories.Add(mostRecentTrajectory);
+
+        if (manager.madeIt)
+        {
+            allValidTrajectories.Add(mostRecentTrajectory);
+        }
 
         Destroy(obj);
 
@@ -153,7 +162,11 @@ public class Launcher : MonoBehaviour
             }
         }
 
-        string json = JsonUtility.ToJson(allTrajectories, true);
+        string json = "";
+        foreach (Trajectory validTraj in allValidTrajectories)
+        {
+            json += JsonUtility.ToJson(allTrajectories, true);
+        }
         File.WriteAllText(Path, json);
     }
 
