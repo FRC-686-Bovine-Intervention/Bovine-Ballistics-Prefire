@@ -16,7 +16,7 @@ public class Launcher : MonoBehaviour
     public Transform child;
     public GameObject fuel;
 
-    private static string Path => Application.persistentDataPath + "/data.txt";
+    private static string Path => "data.txt";
 
     public float timescale;
     /*----ALL PARAMETERS FOR SHOOTER HERE----*/
@@ -162,11 +162,14 @@ public class Launcher : MonoBehaviour
             }
         }
 
-        string json = "";
+        string json = "{";
         foreach (Trajectory validTraj in allValidTrajectories)
         {
-            json += JsonUtility.ToJson(allTrajectories, true);
+            json += JsonUtility.ToJson(validTraj, true);
+            json += ",";
         }
+        json.Remove(json.Length - 1);
+        json += "}";
         File.WriteAllText(Path, json);
     }
 

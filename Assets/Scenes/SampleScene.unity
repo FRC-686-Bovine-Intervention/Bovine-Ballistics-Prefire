@@ -339,7 +339,7 @@ MonoBehaviour:
   timescale: 60
   minAngle: 10
   maxAngle: 30
-  angleRes: 10
+  angleRes: 2
   minSpeed: 0
   maxSpeed: 40
   maxSpeedTries: 30
