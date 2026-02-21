@@ -1,15 +1,6 @@
 {{
     "initX": -7.0,
     "initVX": 0.0,
-    "initTheta": 10.0,
-    "initSpeed": 17.740478515625,
-    "madeIt": true,
-    "maxHeight": 11.981204986572266,
-    "landingX": -0.14523278176784516,
-    "landingY": 1.5096865892410279
-},{
-    "initX": -7.0,
-    "initVX": 0.0,
     "initTheta": 20.0,
     "initSpeed": 11.875,
     "madeIt": true,

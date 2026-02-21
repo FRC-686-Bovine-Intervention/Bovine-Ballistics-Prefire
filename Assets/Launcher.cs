@@ -56,9 +56,19 @@ public class Launcher : MonoBehaviour
         //    transform.eulerAngles = new Vector3(0,0,-45);
         //    fuel.Launch(child.position, new Vector2(10.0f, 10.0f));
         //}
-        if (Input.GetKeyDown(KeyCode.Space) && !hasStarted)
+        //if (Input.GetKeyDown(KeyCode.Space) && !hasStarted)
+        //{
+        //    Debug.Log(Application.persistentDataPath);
+        //    Time.timeScale = timescale;
+        //    hasStarted = true;
+        //    StartCoroutine(AllTrajectories());
+        //}
+    }
+
+    public void StartSim()
+    {
+        if (!hasStarted)
         {
-            Debug.Log(Application.persistentDataPath);
             Time.timeScale = timescale;
             hasStarted = true;
             StartCoroutine(AllTrajectories());
