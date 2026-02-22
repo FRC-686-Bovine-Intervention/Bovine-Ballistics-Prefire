@@ -1,7 +1,9 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
+using Newtonsoft.Json;
 
 public class Launcher : MonoBehaviour
 {
@@ -16,7 +18,7 @@ public class Launcher : MonoBehaviour
     public Transform child;
     public GameObject fuel;
 
-    private static string Path => "data.txt";
+    private static string Path => "data.json";
 
     public float timescale;
     /*----ALL PARAMETERS FOR SHOOTER HERE----*/
@@ -172,27 +174,30 @@ public class Launcher : MonoBehaviour
             }
         }
 
-        string json = "{";
-        foreach (Trajectory validTraj in allValidTrajectories)
-        {
-            json += JsonUtility.ToJson(validTraj, true);
-            json += ",";
-        }
-        json.Remove(json.Length - 1);
-        json += "}";
+        //string json = "{";
+        //foreach (Trajectory validTraj in allValidTrajectories)
+        //{
+        //    json += JsonUtility.ToJson(validTraj, true);
+        //    json += ",";
+        //}
+        //json.Remove(json.Length - 1);
+        //json += "}";
+
+        string json = JsonConvert.SerializeObject(allValidTrajectories);
         File.WriteAllText(Path, json);
     }
 
+    [Serializable]
     public class Trajectory
     {
-        public float initX;
-        public float initVX;
-        public float initTheta;
-        public float initSpeed;
+        public float initX { get; set; }
+        public float initVX { get; set; }
+        public float initTheta { get; set; }
+        public float initSpeed { get; set; }
 
-        public bool madeIt;
-        public float maxHeight;
-        public float landingX;
-        public float landingY;
+        public bool madeIt { get; set; }
+        public float maxHeight { get; set; }
+        public float landingX { get; set; }
+        public float landingY { get; set; }
     }
 }

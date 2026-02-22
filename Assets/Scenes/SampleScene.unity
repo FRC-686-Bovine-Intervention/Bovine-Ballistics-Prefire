@@ -583,7 +583,7 @@ Transform:
   m_GameObject: {fileID: 511311798}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1.46521, y: 0.4826, z: 0}
+  m_LocalPosition: {x: -7, y: 0.4826, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -608,7 +608,7 @@ MonoBehaviour:
   target: {fileID: 417951485}
   child: {fileID: 668998388}
   fuel: {fileID: 1489294362897707591, guid: 5ebb8fe7bc7a3834a8c394e83d2b2743, type: 3}
-  timescale: 60
+  timescale: 1
   minAngle: 10
   maxAngle: 30
   angleRes: 2
