@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using Newtonsoft.Json;
+using System.Linq;
 
 public class Launcher : MonoBehaviour
 {
@@ -19,7 +20,9 @@ public class Launcher : MonoBehaviour
     public Transform child;
     public GameObject fuel;
 
-    private static string Path => "data.json";
+    private string dataInputPath = "shooter.json";
+    private string hoodOutputPath = "hoodPolynomial.json";
+    private string flywheelOutputPath = "flywheelPolynomial.json";
 
     public float timescale;
     /*----ALL PARAMETERS FOR SHOOTER HERE----*/
@@ -49,7 +52,25 @@ public class Launcher : MonoBehaviour
 
     void Awake()
     {
-        if (GetArg("--autostart") == "true" || GetArg("--autostart") == "yes" || GetArg("--autostart") == "y")
+        if (GetArg("--inputpath") != null)
+        {
+            dataInputPath = GetArg("--inputpath");
+        }
+        if (GetArg("--outputdir") != null)
+        {
+            string outdir = GetArg("--outputdir");
+            
+            if (outdir[outdir.Length - 1] == '/')
+            {
+                hoodOutputPath = outdir + hoodOutputPath;
+                flywheelOutputPath = outdir + flywheelOutputPath;
+            } else
+            {
+                hoodOutputPath = outdir + "/" + hoodOutputPath;
+                flywheelOutputPath = outdir + "/" + flywheelOutputPath;
+            }
+        }
+        if (Application.platform == RuntimePlatform.WindowsServer || Application.platform == RuntimePlatform.LinuxServer || Application.platform == RuntimePlatform.OSXServer || (GetArg("--autostart") != null && (GetArg("--autostart") == "true" || GetArg("--autostart") == "yes" || GetArg("--autostart") == "y")))
         {
             this.autoStart = true;
         }
@@ -194,7 +215,7 @@ public class Launcher : MonoBehaviour
         //json += "}";
 
         string json = JsonConvert.SerializeObject(allValidTrajectories);
-        File.WriteAllText(Path, json);
+        File.WriteAllText(hoodOutputPath, json);
 
         if (!autoStart)
         {
