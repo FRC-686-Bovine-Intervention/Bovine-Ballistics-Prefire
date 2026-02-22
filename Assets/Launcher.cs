@@ -17,7 +17,11 @@ public class Launcher : MonoBehaviour
 
     public Transform target;
 
-    public Transform child;
+    public Transform exitWall;
+    public Transform flywheel;
+    public Transform hood;
+    public Transform hoodRoller;
+
     public GameObject fuel;
 
     private string dataInputPath = "shooter.json";
@@ -27,6 +31,8 @@ public class Launcher : MonoBehaviour
     private float timescale = 1.0f;
     /*----ALL PARAMETERS FOR SHOOTER HERE----*/
     ShooterConfig config;
+    private float dComp;
+    private float rComp;
 
 
     void Awake()
@@ -64,6 +70,20 @@ public class Launcher : MonoBehaviour
     {
         string json = File.ReadAllText(dataInputPath);
         config = JsonConvert.DeserializeObject<ShooterConfig>(json);
+        dComp = config.rHood - config.rRol - config.rFly;
+        rComp = dComp / 2;
+
+        hood.localScale = new Vector3(config.rHood * 2, config.rHood * 2, 1);
+        flywheel.localScale = new Vector3(config.rFly * 2, config.rFly * 2, 1);
+        hoodRoller.localPosition = new Vector3(-config.rHood, 0, 0);
+        hoodRoller.localScale = new Vector3(config.rRol * 2, config.rRol * 2, 1);
+        exitWall.localPosition = new Vector3
+        (
+            ((-config.rHood + config.rRol) - config.rFly) / 2,
+            0,
+            0
+        );
+        exitWall.localScale = new Vector3(rComp, 0.025f, 1);
 
         if (autoStart)
         {
@@ -95,14 +115,14 @@ public class Launcher : MonoBehaviour
         }
     }
 
-    IEnumerator Simulate(float robotX, float robotVX, float angleDegs, float launchSpeed)
+    IEnumerator Simulate(float robotX, float robotVX, float angleDegs, float flywheelSpeed)
     {
-        GameObject obj = Instantiate(fuel, child.position, Quaternion.identity);
+        GameObject obj = Instantiate(fuel, exitWall.position, Quaternion.identity);
         FuelManager manager = obj.GetComponent<FuelManager>();
 
         Vector2 angleUnitVector = new Vector2(Mathf.Sin(angleDegs * Mathf.Deg2Rad), Mathf.Cos(angleDegs * Mathf.Deg2Rad));
-        Vector2 launchVector = angleUnitVector * launchSpeed;
-        manager.Launch(child.position, launchVector);
+        Vector2 launchVector = angleUnitVector * getBallExitVelo(flywheelSpeed);
+        manager.Launch(exitWall.position, launchVector);
 
         yield return new WaitUntil(() => manager.dead);
         Debug.Log("Dead");
@@ -113,7 +133,7 @@ public class Launcher : MonoBehaviour
             initX = robotX,
             initVX = robotVX,
             initTheta = angleDegs,
-            initSpeed = launchSpeed,
+            initVFly = flywheelSpeed,
 
             madeIt = manager.madeIt,
             maxHeight = manager.maxHeight,
@@ -136,16 +156,16 @@ public class Launcher : MonoBehaviour
 
     IEnumerator BinarySearch(float robotX, float robotVX, float angleDegs)
     {
-        float pivot = config.minSpeed + (config.maxSpeed - config.minSpeed) / 2;
-        float currentMaxSpeed = config.maxSpeed;
-        float currentMinSpeed = config.minSpeed;
+        float pivot = config.minVFly + (config.maxVFly - config.minVFly) / 2;
+        float currentMaxSpeed = config.maxVFly;
+        float currentMinSpeed = config.minVFly;
         int i = 0;
         bool successful = false;
 
-        transform.position = new Vector3(robotX, transform.position.y, transform.position.z);
+        transform.position = new Vector3(-robotX, config.shooterHeight, transform.position.z);
         transform.eulerAngles = new Vector3(0, 0, -angleDegs);
 
-        while (!mostRecentTrajectory.madeIt && i < config.maxSpeedTries)
+        while (!mostRecentTrajectory.madeIt && i < config.vFlyMaxTries)
         {
             pivot = currentMinSpeed + (currentMaxSpeed - currentMinSpeed) / 2;
             Debug.Log("Trying Speed: " + pivot);
@@ -213,13 +233,19 @@ public class Launcher : MonoBehaviour
         }
     }
 
+
+    public float getBallExitVelo(float vFly)
+    {
+        return (vFly + vFly * config.fVelo) / 2;
+    }
+
     [Serializable]
     public class Trajectory
     {
         public float initX { get; set; }
         public float initVX { get; set; }
         public float initTheta { get; set; }
-        public float initSpeed { get; set; }
+        public float initVFly { get; set; }
 
         public bool madeIt { get; set; }
         public float maxHeight { get; set; }
@@ -230,13 +256,20 @@ public class Launcher : MonoBehaviour
     [Serializable]
     public class ShooterConfig
     {
+        public float shooterHeight;
+
+        public float rFly;
+        public float rRol;
+        public float rHood;
+        public float fVelo;
+
+        public float maxVFly;
+        public float minVFly;
+        public float vFlyMaxTries;
+
         public float minAngle;
         public float maxAngle;
         public int angleRes;
-
-        public float minSpeed;
-        public float maxSpeed;
-        public int maxSpeedTries;
 
         public float minVX;
         public float maxVX;

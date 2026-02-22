@@ -119,6 +119,97 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &109168910
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 109168911}
+  - component: {fileID: 109168912}
+  m_Layer: 0
+  m_Name: Hood Roller
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &109168911
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 109168910}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 0.1016, y: 0.1016, z: 0.1016}
+  m_ConstrainProportionsScale: 1
+  m_Children: []
+  m_Father: {fileID: 511311800}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!212 &109168912
+SpriteRenderer:
+  serializedVersion: 2
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 109168910}
+  m_Enabled: 1
+  m_CastShadows: 0
+  m_ReceiveShadows: 0
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 0
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: a97c105638bdf8b4a8650670310a4cd3, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 0
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_MaskInteraction: 0
+  m_Sprite: {fileID: -2413806693520163455, guid: a86470a33a6bf42c4b3595704624658b, type: 3}
+  m_Color: {r: 0.55345905, g: 0.55345905, b: 0.55345905, a: 1}
+  m_FlipX: 0
+  m_FlipY: 0
+  m_DrawMode: 0
+  m_Size: {x: 1, y: 1}
+  m_AdaptiveModeThreshold: 0.5
+  m_SpriteTileMode: 0
+  m_WasSpriteAssigned: 1
+  m_SpriteSortPoint: 0
 --- !u!1 &388305859
 GameObject:
   m_ObjectHideFlags: 0
@@ -132,7 +223,7 @@ GameObject:
   - component: {fileID: 388305862}
   - component: {fileID: 388305861}
   m_Layer: 5
-  m_Name: Button
+  m_Name: Start Button
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -265,7 +356,7 @@ GameObject:
   - component: {fileID: 417951487}
   - component: {fileID: 417951488}
   m_Layer: 0
-  m_Name: Square (1)
+  m_Name: Hub Target
   m_TagString: Finish
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -430,7 +521,7 @@ GameObject:
   - component: {fileID: 476266923}
   - component: {fileID: 476266922}
   m_Layer: 5
-  m_Name: Text (TMP) (2)
+  m_Name: Input File
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -588,6 +679,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 881787700}
+  - {fileID: 109168911}
   - {fileID: 792326238}
   - {fileID: 668998388}
   m_Father: {fileID: 0}
@@ -605,22 +697,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: '::'
   hasStarted: 0
+  autoStart: 0
+  allTrajectories: []
+  allValidTrajectories: []
   target: {fileID: 417951485}
-  child: {fileID: 668998388}
+  exitWall: {fileID: 668998388}
+  flywheel: {fileID: 881787700}
+  hood: {fileID: 792326238}
+  hoodRoller: {fileID: 109168911}
   fuel: {fileID: 1489294362897707591, guid: 5ebb8fe7bc7a3834a8c394e83d2b2743, type: 3}
-  timescale: 1
-  minAngle: 10
-  maxAngle: 30
-  angleRes: 2
-  minSpeed: 0
-  maxSpeed: 40
-  maxSpeedTries: 30
-  minVX: 0
-  maxVX: 0
-  vxRes: 1
-  minX: -7
-  maxX: -2
-  xRes: 1
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0
@@ -768,7 +853,7 @@ GameObject:
   m_Component:
   - component: {fileID: 577547829}
   m_Layer: 0
-  m_Name: GameObject
+  m_Name: Hub
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -889,7 +974,7 @@ GameObject:
   - component: {fileID: 668998388}
   - component: {fileID: 668998389}
   m_Layer: 0
-  m_Name: Launcher
+  m_Name: Exit Wall
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -982,7 +1067,7 @@ GameObject:
   - component: {fileID: 772895247}
   - component: {fileID: 772895249}
   m_Layer: 0
-  m_Name: Square (1)
+  m_Name: Hub Base
   m_TagString: Kill
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1146,7 +1231,7 @@ GameObject:
   - component: {fileID: 792326238}
   - component: {fileID: 792326239}
   m_Layer: 0
-  m_Name: Circle (2)
+  m_Name: Hood
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1305,7 +1390,7 @@ GameObject:
   - component: {fileID: 881787700}
   - component: {fileID: 881787701}
   m_Layer: 0
-  m_Name: Circle (1)
+  m_Name: Flywheel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1397,7 +1482,7 @@ GameObject:
   - component: {fileID: 980448498}
   - component: {fileID: 980448497}
   m_Layer: 5
-  m_Name: Text (TMP) (3)
+  m_Name: Output Files
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1538,7 +1623,7 @@ GameObject:
   - component: {fileID: 1126191471}
   - component: {fileID: 1126191470}
   m_Layer: 5
-  m_Name: Text (TMP)
+  m_Name: Team 686
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1676,7 +1761,7 @@ GameObject:
   - component: {fileID: 1595490711}
   - component: {fileID: 1595490712}
   m_Layer: 0
-  m_Name: Square
+  m_Name: Floor
   m_TagString: Kill
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1842,7 +1927,7 @@ GameObject:
   - component: {fileID: 1605598942}
   - component: {fileID: 1605598943}
   m_Layer: 0
-  m_Name: Square
+  m_Name: Hub Entry
   m_TagString: Respawn
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2008,7 +2093,7 @@ GameObject:
   - component: {fileID: 1620247460}
   - component: {fileID: 1620247461}
   m_Layer: 0
-  m_Name: Square (2)
+  m_Name: Hub Edge
   m_TagString: Kill
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2310,7 +2395,7 @@ GameObject:
   - component: {fileID: 1686037207}
   - component: {fileID: 1686037206}
   m_Layer: 5
-  m_Name: Text (TMP) (1)
+  m_Name: Bovine Ballistics
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2448,7 +2533,7 @@ GameObject:
   - component: {fileID: 1752321641}
   - component: {fileID: 1752321642}
   m_Layer: 0
-  m_Name: Square
+  m_Name: Hub Edge
   m_TagString: Kill
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
