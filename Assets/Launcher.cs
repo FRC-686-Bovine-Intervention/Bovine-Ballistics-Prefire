@@ -1,7 +1,9 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
+using Newtonsoft.Json;
 
 public class Launcher : MonoBehaviour
 {
@@ -16,7 +18,7 @@ public class Launcher : MonoBehaviour
     public Transform child;
     public GameObject fuel;
 
-    private static string Path => "data.txt";
+    private static string Path => "data.json";
 
     public float timescale;
     /*----ALL PARAMETERS FOR SHOOTER HERE----*/
@@ -56,9 +58,19 @@ public class Launcher : MonoBehaviour
         //    transform.eulerAngles = new Vector3(0,0,-45);
         //    fuel.Launch(child.position, new Vector2(10.0f, 10.0f));
         //}
-        if (Input.GetKeyDown(KeyCode.Space) && !hasStarted)
+        //if (Input.GetKeyDown(KeyCode.Space) && !hasStarted)
+        //{
+        //    Debug.Log(Application.persistentDataPath);
+        //    Time.timeScale = timescale;
+        //    hasStarted = true;
+        //    StartCoroutine(AllTrajectories());
+        //}
+    }
+
+    public void StartSim()
+    {
+        if (!hasStarted)
         {
-            Debug.Log(Application.persistentDataPath);
             Time.timeScale = timescale;
             hasStarted = true;
             StartCoroutine(AllTrajectories());
@@ -162,27 +174,30 @@ public class Launcher : MonoBehaviour
             }
         }
 
-        string json = "{";
-        foreach (Trajectory validTraj in allValidTrajectories)
-        {
-            json += JsonUtility.ToJson(validTraj, true);
-            json += ",";
-        }
-        json.Remove(json.Length - 1);
-        json += "}";
+        //string json = "{";
+        //foreach (Trajectory validTraj in allValidTrajectories)
+        //{
+        //    json += JsonUtility.ToJson(validTraj, true);
+        //    json += ",";
+        //}
+        //json.Remove(json.Length - 1);
+        //json += "}";
+
+        string json = JsonConvert.SerializeObject(allValidTrajectories);
         File.WriteAllText(Path, json);
     }
 
+    [Serializable]
     public class Trajectory
     {
-        public float initX;
-        public float initVX;
-        public float initTheta;
-        public float initSpeed;
+        public float initX { get; set; }
+        public float initVX { get; set; }
+        public float initTheta { get; set; }
+        public float initSpeed { get; set; }
 
-        public bool madeIt;
-        public float maxHeight;
-        public float landingX;
-        public float landingY;
+        public bool madeIt { get; set; }
+        public float maxHeight { get; set; }
+        public float landingX { get; set; }
+        public float landingY { get; set; }
     }
 }
