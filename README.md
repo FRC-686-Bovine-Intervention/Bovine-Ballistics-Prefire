@@ -59,3 +59,9 @@ The simulator can be customized in a few ways, each potentially crucial to the e
 - **minX**: the minimum distance of the shooter from the center of the Hub while shooting, in meters
 - **maxX**: the maximum distance of the shooter from the center of the Hub while shooting, in meters
 - **xRes**: how many various hub-relative shooter positions the simulator will gather data from
+####
+- **angleDev**: Expected average angular error of the hood in degrees
+- **vFlyDev**: Expected average surface speed error of the flywheel in meters/second
+####
+- **robustnessFactor**: Arbitrary scalar definining the weight on the cost of the robustness of a trajectory
+- **heightFactor**: Arbitrary scalar defining the weight on the cost of the height of a trajectory

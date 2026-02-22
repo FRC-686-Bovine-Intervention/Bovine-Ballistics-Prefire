@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using Newtonsoft.Json;
-using System.Linq;
 
 public class Launcher : MonoBehaviour
 {
@@ -14,6 +13,7 @@ public class Launcher : MonoBehaviour
     public Trajectory mostRecentSuccessfulTrajectory = new Trajectory { madeIt = true };
     public List<Trajectory> allTrajectories = new List<Trajectory>();
     public List<Trajectory> allValidTrajectories = new List<Trajectory>();
+    public List<Trajectory> bestTrajectories = new List<Trajectory>();
 
     public Transform target;
 
@@ -200,6 +200,7 @@ public class Launcher : MonoBehaviour
             float x = config.minX + i * (config.maxX - config.minX) / config.xRes;
             for (int j = 0; j < config.vxRes; j++)
             {
+                List<Trajectory> localValidTrajectories = new List<Trajectory>();
                 float vx = config.minVX + j * (config.maxVX - config.minVX) / config.vxRes;
                 for (int k = 0; k < config.angleRes; k++)
                 {
@@ -208,21 +209,18 @@ public class Launcher : MonoBehaviour
                     mostRecentTrajectory = new Trajectory { madeIt = false };
                     mostRecentSuccessfulTrajectory = new Trajectory { madeIt = true };
                     yield return StartCoroutine(BinarySearch(x, vx, angle));
+
+                    localValidTrajectories.Add(mostRecentSuccessfulTrajectory);
                 }
+
+                yield return StartCoroutine(EvaluateTrajectories(localValidTrajectories));
             }
         }
 
-        //string json = "{";
-        //foreach (Trajectory validTraj in allValidTrajectories)
-        //{
-        //    json += JsonUtility.ToJson(validTraj, true);
-        //    json += ",";
-        //}
-        //json.Remove(json.Length - 1);
-        //json += "}";
-
-        string json = JsonConvert.SerializeObject(allValidTrajectories);
+        string json = JsonConvert.SerializeObject(bestTrajectories);
         File.WriteAllText(hoodOutputPath, json);
+        json = JsonConvert.SerializeObject(allValidTrajectories);
+        File.WriteAllText(flywheelOutputPath, json);
 
         if (!autoStart)
         {
@@ -231,6 +229,35 @@ public class Launcher : MonoBehaviour
         {
             Application.Quit();
         }
+        yield return null;
+    }
+
+    IEnumerator EvaluateTrajectories(List<Trajectory> trajectories)
+    {
+        float lowestScore = float.MaxValue;
+        Trajectory best = trajectories[0];
+        for (int i = 1; i < trajectories.Count; i++)
+        {
+            var trajectory = trajectories[i];
+            Debug.Log("Testing error");
+            yield return StartCoroutine(Simulate(trajectory.initX, trajectory.initVX, trajectory.initTheta + config.angleDev, trajectory.initVFly + config.vFlyDev));
+            var trajectory2 = mostRecentTrajectory;
+            float dx = trajectory2.landingX - trajectory.landingX;
+            Debug.Log("Got error of: " + dx);
+            float robustnessScore = (Mathf.Pow(dx/config.vFlyDev, 2) + Mathf.Pow(dx/config.angleDev, 2)) * config.robustnessFactor;
+
+            float heightScore = trajectory.maxHeight * config.heightFactor;
+
+            float totalScore = robustnessScore + heightScore;
+            if (totalScore < lowestScore)
+            {
+                lowestScore = totalScore;
+                best = trajectory;
+            }
+        }
+
+        bestTrajectories.Add(best);
+        yield return null;
     }
 
 
@@ -278,5 +305,11 @@ public class Launcher : MonoBehaviour
         public float minX;
         public float maxX;
         public int xRes;
+
+        public float angleDev;
+        public float vFlyDev;
+
+        public float robustnessFactor;
+        public float heightFactor;
     }
 }
