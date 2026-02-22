@@ -8,6 +8,7 @@ using Newtonsoft.Json;
 public class Launcher : MonoBehaviour
 {
     public bool hasStarted = false;
+    public bool autoStart = false;
     public Trajectory mostRecentTrajectory = new Trajectory { madeIt = false };
     public Trajectory mostRecentSuccessfulTrajectory = new Trajectory { madeIt = true };
     public List<Trajectory> allTrajectories = new List<Trajectory>();
@@ -46,25 +47,34 @@ public class Launcher : MonoBehaviour
     public int xRes;
 
 
-    void Start()
+    void Awake()
     {
-        
+        if (GetArg("--autostart") == "true" || GetArg("--autostart") == "yes" || GetArg("--autostart") == "y")
+        {
+            this.autoStart = true;
+        }
     }
 
-    void Update()
+    private void Start()
     {
-        //if (Input.GetKeyDown(KeyCode.Space) && !hasStarted)
-        //{
-        //    transform.eulerAngles = new Vector3(0,0,-45);
-        //    fuel.Launch(child.position, new Vector2(10.0f, 10.0f));
-        //}
-        //if (Input.GetKeyDown(KeyCode.Space) && !hasStarted)
-        //{
-        //    Debug.Log(Application.persistentDataPath);
-        //    Time.timeScale = timescale;
-        //    hasStarted = true;
-        //    StartCoroutine(AllTrajectories());
-        //}
+        if (autoStart)
+        {
+            StartSim();
+        }
+    }
+
+    public static string GetArg(string arg)
+    {
+        var args = Environment.GetCommandLineArgs();
+
+        for (int i = 0; i < args.Length; i++)
+        {
+            if (args[i] == arg && i + 1 < args.Length)
+            {
+                return args[i+1];
+            }
+        }
+        return null;
     }
 
     public void StartSim()
@@ -186,7 +196,13 @@ public class Launcher : MonoBehaviour
         string json = JsonConvert.SerializeObject(allValidTrajectories);
         File.WriteAllText(Path, json);
 
-        hasStarted = false; // Reset
+        if (!autoStart)
+        {
+            hasStarted = false;
+        } else
+        {
+            Application.Quit();
+        }
     }
 
     [Serializable]
