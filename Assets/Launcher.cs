@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using Newtonsoft.Json;
+using System.Linq;
 
 public class Launcher : MonoBehaviour
 {
     public bool hasStarted = false;
+    public bool autoStart = false;
     public Trajectory mostRecentTrajectory = new Trajectory { madeIt = false };
     public Trajectory mostRecentSuccessfulTrajectory = new Trajectory { madeIt = true };
     public List<Trajectory> allTrajectories = new List<Trajectory>();
@@ -18,7 +20,9 @@ public class Launcher : MonoBehaviour
     public Transform child;
     public GameObject fuel;
 
-    private static string Path => "data.json";
+    private string dataInputPath = "shooter.json";
+    private string hoodOutputPath = "hoodPolynomial.json";
+    private string flywheelOutputPath = "flywheelPolynomial.json";
 
     public float timescale;
     /*----ALL PARAMETERS FOR SHOOTER HERE----*/
@@ -46,25 +50,52 @@ public class Launcher : MonoBehaviour
     public int xRes;
 
 
-    void Start()
+    void Awake()
     {
-        
+        if (GetArg("--inputpath") != null)
+        {
+            dataInputPath = GetArg("--inputpath");
+        }
+        if (GetArg("--outputdir") != null)
+        {
+            string outdir = GetArg("--outputdir");
+            
+            if (outdir[outdir.Length - 1] == '/')
+            {
+                hoodOutputPath = outdir + hoodOutputPath;
+                flywheelOutputPath = outdir + flywheelOutputPath;
+            } else
+            {
+                hoodOutputPath = outdir + "/" + hoodOutputPath;
+                flywheelOutputPath = outdir + "/" + flywheelOutputPath;
+            }
+        }
+        if (Application.platform == RuntimePlatform.WindowsServer || Application.platform == RuntimePlatform.LinuxServer || Application.platform == RuntimePlatform.OSXServer || (GetArg("--autostart") != null && (GetArg("--autostart") == "true" || GetArg("--autostart") == "yes" || GetArg("--autostart") == "y")))
+        {
+            this.autoStart = true;
+        }
     }
 
-    void Update()
+    private void Start()
     {
-        //if (Input.GetKeyDown(KeyCode.Space) && !hasStarted)
-        //{
-        //    transform.eulerAngles = new Vector3(0,0,-45);
-        //    fuel.Launch(child.position, new Vector2(10.0f, 10.0f));
-        //}
-        //if (Input.GetKeyDown(KeyCode.Space) && !hasStarted)
-        //{
-        //    Debug.Log(Application.persistentDataPath);
-        //    Time.timeScale = timescale;
-        //    hasStarted = true;
-        //    StartCoroutine(AllTrajectories());
-        //}
+        if (autoStart)
+        {
+            StartSim();
+        }
+    }
+
+    public static string GetArg(string arg)
+    {
+        var args = Environment.GetCommandLineArgs();
+
+        for (int i = 0; i < args.Length; i++)
+        {
+            if (args[i] == arg && i + 1 < args.Length)
+            {
+                return args[i+1];
+            }
+        }
+        return null;
     }
 
     public void StartSim()
@@ -184,9 +215,15 @@ public class Launcher : MonoBehaviour
         //json += "}";
 
         string json = JsonConvert.SerializeObject(allValidTrajectories);
-        File.WriteAllText(Path, json);
+        File.WriteAllText(hoodOutputPath, json);
 
-        hasStarted = false; // Reset
+        if (!autoStart)
+        {
+            hasStarted = false;
+        } else
+        {
+            Application.Quit();
+        }
     }
 
     [Serializable]
