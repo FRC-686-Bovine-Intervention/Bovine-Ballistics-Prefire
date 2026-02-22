@@ -185,6 +185,8 @@ public class Launcher : MonoBehaviour
 
         string json = JsonConvert.SerializeObject(allValidTrajectories);
         File.WriteAllText(Path, json);
+
+        hasStarted = false; // Reset
     }
 
     [Serializable]
