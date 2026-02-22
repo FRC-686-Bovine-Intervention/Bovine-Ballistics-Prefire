@@ -24,34 +24,18 @@ public class Launcher : MonoBehaviour
     private string hoodOutputPath = "hoodPolynomial.json";
     private string flywheelOutputPath = "flywheelPolynomial.json";
 
-    public float timescale;
+    private float timescale = 1.0f;
     /*----ALL PARAMETERS FOR SHOOTER HERE----*/
-    [Header("Shooter Params")]
-
-
-    [Header("Angle Params")]
-    public float minAngle;
-    public float maxAngle;
-    public int angleRes;
-
-    [Header("Speed Params")]
-    public float minSpeed;
-    public float maxSpeed;
-    public int maxSpeedTries;
-
-    [Header("Velocity Params")]
-    public float minVX;
-    public float maxVX;
-    public int vxRes;
-
-    [Header("Position Params")]
-    public float minX;
-    public float maxX;
-    public int xRes;
+    ShooterConfig config;
 
 
     void Awake()
     {
+        if (GetArg("--timescale") != null)
+        {
+            float parsedTimescale = float.Parse(GetArg("--timescale"));
+            timescale = parsedTimescale;
+        }
         if (GetArg("--inputpath") != null)
         {
             dataInputPath = GetArg("--inputpath");
@@ -78,6 +62,9 @@ public class Launcher : MonoBehaviour
 
     private void Start()
     {
+        string json = File.ReadAllText(dataInputPath);
+        config = JsonConvert.DeserializeObject<ShooterConfig>(json);
+
         if (autoStart)
         {
             StartSim();
@@ -149,16 +136,16 @@ public class Launcher : MonoBehaviour
 
     IEnumerator BinarySearch(float robotX, float robotVX, float angleDegs)
     {
-        float pivot = minSpeed + (maxSpeed - minSpeed) / 2;
-        float currentMaxSpeed = maxSpeed;
-        float currentMinSpeed = minSpeed;
+        float pivot = config.minSpeed + (config.maxSpeed - config.minSpeed) / 2;
+        float currentMaxSpeed = config.maxSpeed;
+        float currentMinSpeed = config.minSpeed;
         int i = 0;
         bool successful = false;
 
         transform.position = new Vector3(robotX, transform.position.y, transform.position.z);
         transform.eulerAngles = new Vector3(0, 0, -angleDegs);
 
-        while (!mostRecentTrajectory.madeIt && i < maxSpeedTries)
+        while (!mostRecentTrajectory.madeIt && i < config.maxSpeedTries)
         {
             pivot = currentMinSpeed + (currentMaxSpeed - currentMinSpeed) / 2;
             Debug.Log("Trying Speed: " + pivot);
@@ -188,15 +175,15 @@ public class Launcher : MonoBehaviour
 
     IEnumerator AllTrajectories()
     {
-        for (int i = 0; i < xRes; i++)
+        for (int i = 0; i < config.xRes; i++)
         {
-            float x = minX + i * (maxX - minX) / xRes;
-            for (int j = 0; j < vxRes; j++)
+            float x = config.minX + i * (config.maxX - config.minX) / config.xRes;
+            for (int j = 0; j < config.vxRes; j++)
             {
-                float vx = minVX + j * (maxVX - minVX) / vxRes;
-                for (int k = 0; k < angleRes; k++)
+                float vx = config.minVX + j * (config.maxVX - config.minVX) / config.vxRes;
+                for (int k = 0; k < config.angleRes; k++)
                 {
-                    float angle = minAngle + k * (maxAngle - minAngle) / angleRes;
+                    float angle = config.minAngle + k * (config.maxAngle - config.minAngle) / config.angleRes;
                     Debug.Log("Trying all for x: " + x + " and vx: " + vx + " and angle: " + angle);
                     mostRecentTrajectory = new Trajectory { madeIt = false };
                     mostRecentSuccessfulTrajectory = new Trajectory { madeIt = true };
@@ -238,5 +225,25 @@ public class Launcher : MonoBehaviour
         public float maxHeight { get; set; }
         public float landingX { get; set; }
         public float landingY { get; set; }
+    }
+
+    [Serializable]
+    public class ShooterConfig
+    {
+        public float minAngle;
+        public float maxAngle;
+        public int angleRes;
+
+        public float minSpeed;
+        public float maxSpeed;
+        public int maxSpeedTries;
+
+        public float minVX;
+        public float maxVX;
+        public int vxRes;
+
+        public float minX;
+        public float maxX;
+        public int xRes;
     }
 }
