@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using Newtonsoft.Json;
-using System.Linq;
+using MathNet.Numerics.LinearAlgebra;
 
 public class Launcher : MonoBehaviour
 {
@@ -14,6 +14,10 @@ public class Launcher : MonoBehaviour
     public Trajectory mostRecentSuccessfulTrajectory = new Trajectory { madeIt = true };
     public List<Trajectory> allTrajectories = new List<Trajectory>();
     public List<Trajectory> allValidTrajectories = new List<Trajectory>();
+    public List<Trajectory> bestTrajectories = new List<Trajectory>();
+
+    public TwoVariablePolynomial3rdDegree hoodPolynomial;
+    public TwoVariablePolynomial3rdDegree flywheelPolynomial;
 
     public Transform target;
 
@@ -28,7 +32,7 @@ public class Launcher : MonoBehaviour
     private string hoodOutputPath = "hoodPolynomial.json";
     private string flywheelOutputPath = "flywheelPolynomial.json";
 
-    private float timescale = 1.0f;
+    public float timescale = 1.0f;
     /*----ALL PARAMETERS FOR SHOOTER HERE----*/
     ShooterConfig config;
     private float dComp;
@@ -200,6 +204,7 @@ public class Launcher : MonoBehaviour
             float x = config.minX + i * (config.maxX - config.minX) / config.xRes;
             for (int j = 0; j < config.vxRes; j++)
             {
+                List<Trajectory> localValidTrajectories = new List<Trajectory>();
                 float vx = config.minVX + j * (config.maxVX - config.minVX) / config.vxRes;
                 for (int k = 0; k < config.angleRes; k++)
                 {
@@ -208,21 +213,21 @@ public class Launcher : MonoBehaviour
                     mostRecentTrajectory = new Trajectory { madeIt = false };
                     mostRecentSuccessfulTrajectory = new Trajectory { madeIt = true };
                     yield return StartCoroutine(BinarySearch(x, vx, angle));
+
+                    localValidTrajectories.Add(mostRecentSuccessfulTrajectory);
                 }
+
+                yield return StartCoroutine(EvaluateTrajectories(localValidTrajectories));
             }
         }
 
-        //string json = "{";
-        //foreach (Trajectory validTraj in allValidTrajectories)
-        //{
-        //    json += JsonUtility.ToJson(validTraj, true);
-        //    json += ",";
-        //}
-        //json.Remove(json.Length - 1);
-        //json += "}";
+        yield return StartCoroutine(GenerateHoodPolynomial(bestTrajectories));
+        string hoodJson = JsonConvert.SerializeObject(hoodPolynomial);
+        File.WriteAllText(hoodOutputPath, hoodJson);
 
-        string json = JsonConvert.SerializeObject(allValidTrajectories);
-        File.WriteAllText(hoodOutputPath, json);
+        yield return StartCoroutine(GenerateFlywheelPolynomial(bestTrajectories));
+        string flywheelJson = JsonConvert.SerializeObject(flywheelPolynomial);
+        File.WriteAllText(flywheelOutputPath, flywheelJson);
 
         if (!autoStart)
         {
@@ -231,6 +236,108 @@ public class Launcher : MonoBehaviour
         {
             Application.Quit();
         }
+        yield return null;
+    }
+
+    IEnumerator EvaluateTrajectories(List<Trajectory> trajectories)
+    {
+        float lowestScore = float.MaxValue;
+        Trajectory best = trajectories[0];
+        for (int i = 1; i < trajectories.Count; i++)
+        {
+            var trajectory = trajectories[i];
+            if (trajectory == null) continue;
+            Debug.Log("Testing error");
+            yield return StartCoroutine(Simulate(trajectory.initX, trajectory.initVX, trajectory.initTheta + config.angleDev, trajectory.initVFly + config.vFlyDev));
+            var trajectory2 = mostRecentTrajectory;
+            float dx = trajectory2.landingX - trajectory.landingX;
+            Debug.Log("Got error of: " + dx);
+            float robustnessScore = (Mathf.Pow(dx/config.vFlyDev, 2) + Mathf.Pow(dx/config.angleDev, 2)) * config.robustnessFactor;
+
+            float heightScore = trajectory.maxHeight * config.heightFactor;
+
+            float totalScore = robustnessScore + heightScore;
+            if (totalScore < lowestScore)
+            {
+                lowestScore = totalScore;
+                best = trajectory;
+            }
+        }
+
+        bestTrajectories.Add(best);
+        yield return null;
+    }
+
+    IEnumerator GenerateHoodPolynomial(List<Trajectory> trajectories)
+    {
+        int N = trajectories.Count;
+        var A = Matrix<double>.Build.Dense(N, 10);
+        var b = Vector<double>.Build.Dense(N);
+
+        for (int i = 0; i < N; i++)
+        {
+            double x1 = trajectories[i].initX;
+            double x2 = trajectories[i].initVX;
+            double y = Mathf.Deg2Rad * trajectories[i].initTheta;
+
+            A[i, 0] = 1;
+            A[i, 1] = x1;
+            A[i, 2] = x2;
+            A[i, 3] = x1 * x1;
+            A[i, 4] = x1 * x2;
+            A[i, 5] = x2 * x2;
+            A[i, 6] = x1 * x1 * x1;
+            A[i, 7] = x1 * x1 * x2;
+            A[i, 8] = x1 * x2 * x2;
+            A[i, 9] = x2 * x2 * x2;
+
+            b[i] = y;
+        }
+
+        var qr = A.QR();
+        Vector<double> coeffs = qr.Solve(b);
+
+        hoodPolynomial = new TwoVariablePolynomial3rdDegree
+        {
+            coefficients = coeffs.AsArray()
+        };
+        yield return null;
+    }
+
+    IEnumerator GenerateFlywheelPolynomial(List<Trajectory> trajectories)
+    {
+        int N = trajectories.Count;
+        var A = Matrix<double>.Build.Dense(N, 10);
+        var b = Vector<double>.Build.Dense(N);
+
+        for (int i = 0; i < N; i++)
+        {
+            double x1 = trajectories[i].initX;
+            double x2 = trajectories[i].initVX;
+            double y = trajectories[i].initVFly;
+
+            A[i, 0] = 1;
+            A[i, 1] = x1;
+            A[i, 2] = x2;
+            A[i, 3] = x1 * x1;
+            A[i, 4] = x1 * x2;
+            A[i, 5] = x2 * x2;
+            A[i, 6] = x1 * x1 * x1;
+            A[i, 7] = x1 * x1 * x2;
+            A[i, 8] = x1 * x2 * x2;
+            A[i, 9] = x2 * x2 * x2;
+
+            b[i] = y;
+        }
+
+        var qr = A.QR();
+        Vector<double> coeffs = qr.Solve(b);
+
+        flywheelPolynomial = new TwoVariablePolynomial3rdDegree
+        {
+            coefficients = coeffs.AsArray()
+        };
+        yield return null;
     }
 
 
@@ -278,5 +385,17 @@ public class Launcher : MonoBehaviour
         public float minX;
         public float maxX;
         public int xRes;
+
+        public float angleDev;
+        public float vFlyDev;
+
+        public float robustnessFactor;
+        public float heightFactor;
+    }
+
+    [Serializable]
+    public class TwoVariablePolynomial3rdDegree
+    {
+        public double[] coefficients;
     }
 }

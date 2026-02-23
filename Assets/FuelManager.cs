@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using static UnityEngine.InputSystem.HID.HID;
 
@@ -15,17 +16,26 @@ public class FuelManager : MonoBehaviour
     public Vector2 p;
     public Vector2 initV;
     public Vector2 initPos;
+    public Rigidbody2D rb;
 
     public Vector2 end;
     public float maxHeight;
     public bool simulating = false;
     public bool madeIt = false;
     public bool dead = false;
+
+    public bool isServer = false;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         float r = transform.localScale.x * 0.5f;
         area = Mathf.PI * r * r;
+
+        if (Application.platform == RuntimePlatform.WindowsServer || Application.platform == RuntimePlatform.LinuxServer || Application.platform == RuntimePlatform.OSXServer)
+        {
+            isServer = true;
+            //Physics.simulationMode = SimulationMode.Script;
+        }
     }
 
     private void FixedUpdate()
@@ -67,8 +77,47 @@ public class FuelManager : MonoBehaviour
 
         maxHeight = p.y;
 
-        simulating = true;
+        //if (isServer)
+        //{
+        //    StartCoroutine(Simulate());
+        //} 
+        //else
+        //{
+            simulating = true;
+        //}
     }
+
+    //IEnumerator Simulate()
+    //{
+    //    while (!dead)
+    //    {
+    //        this.p = transform.position;
+    //        if (p.y > maxHeight)
+    //        {
+    //            maxHeight = p.y;
+    //        }
+
+    //        Vector2 totalForces = new Vector2(0, -g * mass);
+
+    //        float speed = v.magnitude;
+
+    //        if (speed > 0f)
+    //        {
+    //            Vector2 dragForce =
+    //                -0.5f * airDensity * speed * speed * dragCoefficient * area * v.normalized;
+
+    //            totalForces += dragForce;
+    //        }
+
+    //        Vector2 a = totalForces / mass;
+
+    //        this.v += a * Time.fixedDeltaTime;
+    //        rb.MovePosition(rb.position + v * 0.1f);
+
+    //        Physics.Simulate(0.1f);
+    //    }
+    //    yield return new WaitForSeconds(0.1f);
+    //}
 
     private void OnCollisionEnter2D(Collision2D collision)
     {

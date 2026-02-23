@@ -1,0 +1,381 @@
+﻿using MathNet.Numerics.LinearAlgebra;
+using Newtonsoft.Json;
+using nkast.Aether.Physics2D.Common;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Text;
+
+namespace Headless
+{
+    internal class Runner
+    {
+        public List<Trajectory> allTrajectories = new List<Trajectory>();
+        public List<Trajectory> allValidTrajectories = new List<Trajectory>();
+        public List<Trajectory> bestTrajectories = new List<Trajectory>();
+
+        public TwoVariablePolynomial3rdDegree hoodPolynomial;
+        public TwoVariablePolynomial3rdDegree flywheelPolynomial;
+
+        public float launchPointR;
+
+        private string dataInputPath = "shooter.json";
+        private string hoodOutputPath = "hoodPolynomial.json";
+        private string flywheelOutputPath = "flywheelPolynomial.json";
+
+        /*----ALL PARAMETERS FOR SHOOTER HERE----*/
+        ShooterConfig config;
+        private float dComp;
+        private float rComp;
+
+        public void Main(string[] args)
+        {
+            Awake();
+
+            var permutations = new List<(float, float, List<Trajectory>)>();
+
+            for (int i = 0; i < config.xRes; i++)
+            {
+                float x = config.minX + i * (config.maxX - config.minX) / config.xRes;
+                for (int j = 0; j < config.vxRes; j++)
+                {
+                    float vx = config.minVX + j * (config.maxVX - config.minVX) / config.vxRes;
+                    permutations.Add((x, vx, new List<Trajectory>()));
+                }
+            }
+            Parallel.ForEach(permutations, new ParallelOptions
+            {
+                MaxDegreeOfParallelism = Environment.ProcessorCount
+            }, perm =>
+            {
+                List<Trajectory> localValidTrajectories = new List<Trajectory>();
+                for (int i = 0; i < config.angleRes; i++)
+                {
+                    float angle = config.minAngle + i * (config.maxAngle - config.minAngle) / config.angleRes;
+                    //Console.WriteLine("Trying all for x: " + perm.Item1 + " and vx: " + perm.Item2 + " and angle: " + angle);
+                    Trajectory traj = BinarySearch(perm.Item1, perm.Item2, angle);
+
+                    localValidTrajectories.Add(traj);
+                }
+                perm.Item3 = localValidTrajectories;
+                EvaluateTrajectories(localValidTrajectories);
+            });
+
+            //for (int i = 0; i < permutations.Count; i++)
+            //{
+            //    List<Trajectory> nonNull = new List<Trajectory>();
+            //    foreach (var traj in permutations[i].Item3)
+            //    {
+            //        if (traj != null)
+            //        {
+            //            nonNull.Add(traj);
+            //        }
+            //    }
+            //    ;
+            //}
+
+            GenerateHoodPolynomial(bestTrajectories);
+            
+            string hoodJson = JsonConvert.SerializeObject(hoodPolynomial);
+            File.WriteAllText(hoodOutputPath, hoodJson);
+
+            GenerateFlywheelPolynomial(bestTrajectories);
+            string flywheelJson = JsonConvert.SerializeObject(flywheelPolynomial);
+            File.WriteAllText(flywheelOutputPath, flywheelJson);
+        }
+
+        void Awake()
+        {
+            if (GetArg("--inputpath") != null)
+            {
+                dataInputPath = GetArg("--inputpath");
+            }
+            if (GetArg("--outputdir") != null)
+            {
+                string outdir = GetArg("--outputdir");
+
+                if (outdir[outdir.Length - 1] == '/')
+                {
+                    hoodOutputPath = outdir + hoodOutputPath;
+                    flywheelOutputPath = outdir + flywheelOutputPath;
+                }
+                else
+                {
+                    hoodOutputPath = outdir + "/" + hoodOutputPath;
+                    flywheelOutputPath = outdir + "/" + flywheelOutputPath;
+                }
+            }
+
+            string json = File.ReadAllText(dataInputPath);
+            config = JsonConvert.DeserializeObject<ShooterConfig>(json);
+            dComp = config.rHood - config.rRol - config.rFly;
+            rComp = dComp / 2;
+
+            launchPointR = (config.rHood - config.rRol - config.rFly) / 2 + config.rFly;
+        }
+
+        public static string GetArg(string arg)
+        {
+            var args = Environment.GetCommandLineArgs();
+
+            for (int i = 0; i < args.Length; i++)
+            {
+                if (args[i] == arg && i + 1 < args.Length)
+                {
+                    return args[i + 1];
+                }
+            }
+            return null;
+        }
+
+        Trajectory Simulate(float robotX, float robotVX, float angleDegs, float flywheelSpeed)
+        {
+            Fuel obj = new Fuel();
+
+            Vector2 angleUnitVector = new Vector2(Mathf.Sin(angleDegs * Helpers.deg2rad), Mathf.Cos(angleDegs * Helpers.deg2rad));
+            Vector2 launchVector = angleUnitVector * getBallExitVelo(flywheelSpeed);
+            //Console.WriteLine("Launch vector: " + launchVector);
+            obj.init();
+            obj.Launch(findLaunchPos(robotX, angleDegs), launchVector);
+
+            while (!obj.dead)
+            {
+                obj.Update(0.01f);
+            }
+            Trajectory traj = new Trajectory
+            {
+                initX = robotX,
+                initVX = robotVX,
+                initTheta = angleDegs,
+                initVFly = flywheelSpeed,
+
+                madeIt = obj.madeIt,
+                maxHeight = obj.maxHeight,
+                landingX = obj.end.X,
+                landingY = obj.end.Y,
+            };
+
+            //allTrajectories.Add(traj);
+
+            //if (obj.madeIt)
+            //{
+            //    //allValidTrajectories.Add(traj);
+            //}
+
+            //obj = null; //Remove handle to be safe
+
+            return traj;
+        }
+
+        Trajectory BinarySearch(float robotX, float robotVX, float angleDegs)
+        {
+            float pivot = config.minVFly + (config.maxVFly - config.minVFly) / 2;
+            float currentMaxSpeed = config.maxVFly;
+            float currentMinSpeed = config.minVFly;
+            int i = 0;
+            bool successful = false;
+
+            Trajectory mostRecentTrajectory = new Trajectory
+            {
+                madeIt = false
+            };
+            Trajectory mostRecentSuccessfulTrajectory = new Trajectory
+            {
+                madeIt = true
+            };
+
+            while (!mostRecentTrajectory.madeIt && i < config.vFlyMaxTries)
+            {
+                pivot = currentMinSpeed + (currentMaxSpeed - currentMinSpeed) / 2;
+                //Console.WriteLine("Trying speed: " + pivot);
+                var traj = Simulate(robotX, robotVX, angleDegs, pivot);
+                i++;
+                if (traj.landingX != null)
+                {
+                    if (traj.landingX < 0)
+                    {
+                        currentMinSpeed = pivot;
+                    }
+                    else
+                    {
+                        currentMaxSpeed = pivot;
+                    }
+                }
+                mostRecentTrajectory = traj;
+            }
+            if (!mostRecentTrajectory.madeIt)
+            {
+                mostRecentSuccessfulTrajectory = null;
+            }
+            else
+            {
+                mostRecentSuccessfulTrajectory = mostRecentTrajectory;
+                Console.WriteLine("Successful speed: " + pivot);
+            }
+            return mostRecentSuccessfulTrajectory;
+        }
+
+        Vector2 findLaunchPos(float robotX, float angleDegs)
+        {
+            Vector2 shooterPos = new Vector2(-robotX, config.shooterHeight);
+            Vector2 ballRelativeToShooter = new Vector2(-(float)Math.Cos(angleDegs * Helpers.deg2rad), (float)Math.Sin(angleDegs * Helpers.deg2rad)) * launchPointR;
+            return shooterPos + ballRelativeToShooter;
+        }
+
+        void EvaluateTrajectories(List<Trajectory> trajectories)
+        {
+            float lowestScore = float.MaxValue;
+            Trajectory best = null;
+            for (int i = 1; i < trajectories.Count; i++)
+            {
+                var trajectory = trajectories[i];
+                if (trajectory == null) continue;
+                var trajectory2 = Simulate(trajectory.initX, trajectory.initVX, trajectory.initTheta + config.angleDev, trajectory.initVFly + config.vFlyDev);
+                float dx = trajectory2.landingX - trajectory.landingX;
+                float robustnessScore = (float)(Math.Pow(dx / config.vFlyDev, 2) + Math.Pow(dx / config.angleDev, 2)) * config.robustnessFactor;
+
+                float heightScore = trajectory.maxHeight * config.heightFactor;
+
+                float totalScore = robustnessScore + heightScore;
+                if (totalScore < lowestScore)
+                {
+                    lowestScore = totalScore;
+                    best = trajectory;
+                }
+            }
+
+            
+            bestTrajectories.Add(best);
+            
+        }
+
+        void GenerateHoodPolynomial(List<Trajectory> trajectories)
+        {
+            int N = trajectories.Count;
+            var A = Matrix<double>.Build.Dense(N, 10);
+            var b = Vector<double>.Build.Dense(N);
+
+            for (int i = 0; i < N; i++)
+            {
+                double x1 = trajectories[i].initX;
+                double x2 = trajectories[i].initVX;
+                double y = Helpers.deg2rad * trajectories[i].initTheta;
+
+                A[i, 0] = 1;
+                A[i, 1] = x1;
+                A[i, 2] = x2;
+                A[i, 3] = x1 * x1;
+                A[i, 4] = x1 * x2;
+                A[i, 5] = x2 * x2;
+                A[i, 6] = x1 * x1 * x1;
+                A[i, 7] = x1 * x1 * x2;
+                A[i, 8] = x1 * x2 * x2;
+                A[i, 9] = x2 * x2 * x2;
+
+                b[i] = y;
+            }
+
+            var qr = A.QR();
+            Vector<double> coeffs = qr.Solve(b);
+
+            hoodPolynomial = new TwoVariablePolynomial3rdDegree
+            {
+                coefficients = coeffs.AsArray()
+            };
+        }
+
+        void GenerateFlywheelPolynomial(List<Trajectory> trajectories)
+        {
+            int N = trajectories.Count;
+            var A = Matrix<double>.Build.Dense(N, 10);
+            var b = Vector<double>.Build.Dense(N);
+
+            for (int i = 0; i < N; i++)
+            {
+                double x1 = trajectories[i].initX;
+                double x2 = trajectories[i].initVX;
+                double y = trajectories[i].initVFly;
+
+                A[i, 0] = 1;
+                A[i, 1] = x1;
+                A[i, 2] = x2;
+                A[i, 3] = x1 * x1;
+                A[i, 4] = x1 * x2;
+                A[i, 5] = x2 * x2;
+                A[i, 6] = x1 * x1 * x1;
+                A[i, 7] = x1 * x1 * x2;
+                A[i, 8] = x1 * x2 * x2;
+                A[i, 9] = x2 * x2 * x2;
+
+                b[i] = y;
+            }
+
+            var qr = A.QR();
+            Vector<double> coeffs = qr.Solve(b);
+
+            flywheelPolynomial = new TwoVariablePolynomial3rdDegree
+            {
+                coefficients = coeffs.AsArray()
+            };
+        }
+
+
+        public float getBallExitVelo(float vFly)
+        {
+            return (vFly + vFly * config.fVelo) / 2;
+        }
+
+        [Serializable]
+        public class Trajectory
+        {
+            public float initX { get; set; }
+            public float initVX { get; set; }
+            public float initTheta { get; set; }
+            public float initVFly { get; set; }
+
+            public bool madeIt { get; set; }
+            public float maxHeight { get; set; }
+            public float landingX { get; set; }
+            public float landingY { get; set; }
+        }
+
+        [Serializable]
+        public class ShooterConfig
+        {
+            public float shooterHeight;
+
+            public float rFly;
+            public float rRol;
+            public float rHood;
+            public float fVelo;
+
+            public float maxVFly;
+            public float minVFly;
+            public float vFlyMaxTries;
+
+            public float minAngle;
+            public float maxAngle;
+            public int angleRes;
+
+            public float minVX;
+            public float maxVX;
+            public int vxRes;
+
+            public float minX;
+            public float maxX;
+            public int xRes;
+
+            public float angleDev;
+            public float vFlyDev;
+
+            public float robustnessFactor;
+            public float heightFactor;
+        }
+
+        [Serializable]
+        public class TwoVariablePolynomial3rdDegree
+        {
+            public double[] coefficients;
+        }
+    }
+}

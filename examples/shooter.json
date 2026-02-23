@@ -20,5 +20,11 @@
 
   "minX": 2.0,
   "maxX": 10.0,
-  "xRes": 10
+  "xRes": 10,
+
+  "angleDev": 0.5,
+  "vFlyDev": 0.5,
+
+  "robustnessFactor": 1,
+  "heightFactor": 1
 }
