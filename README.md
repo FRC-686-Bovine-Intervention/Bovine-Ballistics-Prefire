@@ -9,7 +9,7 @@ A physics simulator and multivariable polynomial generator for the 2026 FRC seas
 - [x] Add argument support to both versions
 - [x] Add JSON configuration
 - [x] Add simulation speed adjustment
-- [ ] Add automatic polynomial generation
+- [x] Add automatic polynomial generation
 - [ ] Integrate with robot gradle
 ##
 ### Using the simulator:
