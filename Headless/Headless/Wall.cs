@@ -46,11 +46,11 @@ namespace Headless
         }
 
         //CONSTANTS
-        public static Wall floor = new Wall(new Vector2(-200, 0), new Vector2(200, 0));
+        public static Wall floor = new Wall(new Vector2(200, 0), new Vector2(-200, 0));
         public static Vector2 hubOrigin = new Vector2(0, 1.8288f);
         public static Wall[] hub = CreateRectangle(1.688288f, 1.383801f, new Vector2(0, -1.1368f) + hubOrigin);
-        public static Wall hubTop = new Wall(new Vector2(1.06f/2, 0) + hubOrigin, new Vector2(-1.06f, 0) + hubOrigin);
-        public static Wall hubBottom = new Wall(new Vector2(0.605f/2, -0.39f) + hubOrigin, new Vector2(-0.605f, -0.39f) + hubOrigin);
+        public static Wall hubTop = new Wall(new Vector2(-1.06f/2, 0) + hubOrigin, new Vector2(1.06f/2, 0) + hubOrigin);
+        public static Wall hubBottom = new Wall(new Vector2(-0.605f/2, -0.39f) + hubOrigin, new Vector2(0.605f, -0.39f) + hubOrigin);
         public static Wall hub1 = new Wall(new Vector2(0.415f, -0.2f) + hubOrigin, 0.47f, -30f);
         public static Wall hub2 = new Wall(new Vector2(-0.415f, -0.2f) + hubOrigin, 0.47f, 30f);
 

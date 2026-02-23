@@ -31,7 +31,11 @@ namespace Headless
             var toWallOrigin = wall.origin - position;
             var distanceToWall = Helpers.Dot(toWallOrigin, wall.orthogonalVector) - radius;
 
+            var inlineDistancePrevious = Helpers.Dot(toWallOriginPrevious, wall.inlineVector);
             var inlineDistance = Helpers.Dot(toWallOrigin, wall.inlineVector);
+
+            //Console.WriteLine("To Wall Dist: " + distanceToWall);
+            //Console.WriteLine("Inline Dist: " + inlineDistance);
 
             if (distanceToWall <= 0 && distanceToWallPrevious > 0 && Mathf.Abs(inlineDistance) < wall.length / 2)
             {
@@ -39,9 +43,10 @@ namespace Headless
             }
             if (actOnBothSides)
             {
-                var distanceToWallPreviousOtherSide = Helpers.Dot(toWallOriginPrevious, wall.reverseOrthogonalVector) - radius;
-                var distanceToWallOtherSide = Helpers.Dot(toWallOrigin, wall.reverseOrthogonalVector) - radius;
-                if (distanceToWallOtherSide <= 0 && distanceToWallPreviousOtherSide > 0 && Mathf.Abs(inlineDistance) < wall.length / 2)
+                //var distanceToWallPreviousOtherSide = Helpers.Dot(toWallOriginPrevious, wall.reverseOrthogonalVector) - radius;
+                //var distanceToWallOtherSide = Helpers.Dot(toWallOrigin, wall.reverseOrthogonalVector) - radius;
+                //Console.WriteLine("To wall other side dist: " + distanceToWallOtherSide);
+                if (distanceToWall >= 0 && distanceToWallPrevious < 0 && Mathf.Abs(inlineDistance) < wall.length / 2)
                 {
                     return true;
                 }

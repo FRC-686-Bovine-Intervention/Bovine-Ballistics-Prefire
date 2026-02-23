@@ -38,6 +38,7 @@ namespace Headless
         public void Update(float deltaTime)
         {
             if (!simulating) return;
+            fuel.previousPosition = p;
 
             if (p.Y > maxHeight)
                 maxHeight = p.Y;
@@ -74,7 +75,9 @@ namespace Headless
                 end = fuel.position;
             }
 
-            Console.WriteLine("Position: " + fuel.position);
+            //Console.WriteLine("Success: " + madeIt);
+            //Console.WriteLine("Dead: " + dead);
+            //Console.WriteLine("Position: " + fuel.position);
         }
 
         public void Launch(Vector2 pos, Vector2 vel)

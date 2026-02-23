@@ -32,7 +32,7 @@ namespace Headless
         {
             Awake();
 
-            var permutations = new List<(float, float)>();
+            var permutations = new List<(float, float, List<Trajectory>)>();
 
             for (int i = 0; i < config.xRes; i++)
             {
@@ -40,7 +40,7 @@ namespace Headless
                 for (int j = 0; j < config.vxRes; j++)
                 {
                     float vx = config.minVX + j * (config.maxVX - config.minVX) / config.vxRes;
-                    permutations.Add((x, vx));
+                    permutations.Add((x, vx, new List<Trajectory>()));
                 }
             }
             Parallel.ForEach(permutations, new ParallelOptions
@@ -52,15 +52,30 @@ namespace Headless
                 for (int i = 0; i < config.angleRes; i++)
                 {
                     float angle = config.minAngle + i * (config.maxAngle - config.minAngle) / config.angleRes;
-                    Console.WriteLine("Trying all for x: " + perm.Item1 + " and vx: " + perm.Item2 + " and angle: " + angle);
+                    //Console.WriteLine("Trying all for x: " + perm.Item1 + " and vx: " + perm.Item2 + " and angle: " + angle);
                     Trajectory traj = BinarySearch(perm.Item1, perm.Item2, angle);
 
                     localValidTrajectories.Add(traj);
                 }
-
+                perm.Item3 = localValidTrajectories;
                 EvaluateTrajectories(localValidTrajectories);
             });
+
+            //for (int i = 0; i < permutations.Count; i++)
+            //{
+            //    List<Trajectory> nonNull = new List<Trajectory>();
+            //    foreach (var traj in permutations[i].Item3)
+            //    {
+            //        if (traj != null)
+            //        {
+            //            nonNull.Add(traj);
+            //        }
+            //    }
+            //    ;
+            //}
+
             GenerateHoodPolynomial(bestTrajectories);
+            
             string hoodJson = JsonConvert.SerializeObject(hoodPolynomial);
             File.WriteAllText(hoodOutputPath, hoodJson);
 
@@ -119,6 +134,7 @@ namespace Headless
 
             Vector2 angleUnitVector = new Vector2(Mathf.Sin(angleDegs * Helpers.deg2rad), Mathf.Cos(angleDegs * Helpers.deg2rad));
             Vector2 launchVector = angleUnitVector * getBallExitVelo(flywheelSpeed);
+            //Console.WriteLine("Launch vector: " + launchVector);
             obj.init();
             obj.Launch(findLaunchPos(robotX, angleDegs), launchVector);
 
@@ -171,7 +187,7 @@ namespace Headless
             while (!mostRecentTrajectory.madeIt && i < config.vFlyMaxTries)
             {
                 pivot = currentMinSpeed + (currentMaxSpeed - currentMinSpeed) / 2;
-                Console.WriteLine("Trying speed: " + pivot);
+                //Console.WriteLine("Trying speed: " + pivot);
                 var traj = Simulate(robotX, robotVX, angleDegs, pivot);
                 i++;
                 if (traj.landingX != null)
@@ -194,6 +210,7 @@ namespace Headless
             else
             {
                 mostRecentSuccessfulTrajectory = mostRecentTrajectory;
+                Console.WriteLine("Successful speed: " + pivot);
             }
             return mostRecentSuccessfulTrajectory;
         }
@@ -208,7 +225,7 @@ namespace Headless
         void EvaluateTrajectories(List<Trajectory> trajectories)
         {
             float lowestScore = float.MaxValue;
-            Trajectory best = trajectories[0];
+            Trajectory best = null;
             for (int i = 1; i < trajectories.Count; i++)
             {
                 var trajectory = trajectories[i];
@@ -227,7 +244,9 @@ namespace Headless
                 }
             }
 
+            
             bestTrajectories.Add(best);
+            
         }
 
         void GenerateHoodPolynomial(List<Trajectory> trajectories)
