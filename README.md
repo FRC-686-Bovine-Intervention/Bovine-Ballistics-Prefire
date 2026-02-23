@@ -22,14 +22,16 @@ Ballistics comes in two flavors. Both have the same physics simulation under the
 - [x] Can manually start simulation
 - [x] Can see simulation
 - [ ] Can see trajectory details
+- Slow, real-time
 #### Command Line Version:
 - [x] Windows support
-- [x] Linux support
-- [x] MacOS support
-- [x] Gradle support
+- [ ] Linux support (planned)
+- [ ] MacOS support
+- [x] Gradle support (must be added as a custom task by the user)
 - [ ] Can manually start simulation
 - [ ] Can see simulation
 - [x] Can see trajectory details
+- Fast, parallelized
 ####
 The simulator can be customized in a few ways, each potentially crucial to the effectiveness. The first point of customization is the required shooter.json file. This gives the simulator data unique to the robot's shooter. An example file can be found at [examples/shooter.json](examples/shooter.json). Furthermore, the application can also be configured with command line arguments passed when running the executable:
 - **--timescale x** affects the speed at which the program runs. Data is not lost at faster speeds, just this argument isn't useful when visualizing.
