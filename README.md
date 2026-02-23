@@ -36,7 +36,7 @@ The simulator can be customized in a few ways, each potentially crucial to the e
 - **--inputpath x** refers to the shooter.json file, should it be renamed or moved. Absolute and relative both work, but they need to be referencing a text file.
 - **--outputdir x** refers to the folder/directory the user wants the polynomials to output to. The folder/directory must exist beforehand should this argument be used.
 - **--autostart x** refers to whether or not the program should run when it starts up or wait for user input. It only affects the GUI version of the app, as the command line version does this already. Valid arguments for **x** are **true**, **yes**, or **y**, or anything else for false.
-#### Data included in the shooter.json file:
+#### Data included in the shooter.json file (MAKE SURE THAT xRes * vxRes >= 10):
 - **shooterHeight**: the distance from the flywheel center to the ground, in meters
 ####
 - **rFly**: the radius of the flywheel, in meters

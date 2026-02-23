@@ -176,8 +176,10 @@ MonoBehaviour:
   p: {x: 0, y: 0}
   initV: {x: 1, y: 1}
   initPos: {x: 0, y: 0}
+  rb: {fileID: 8087985153518177483}
   end: {x: 0, y: 0}
   maxHeight: 0
   simulating: 0
   madeIt: 0
   dead: 0
+  isServer: 0

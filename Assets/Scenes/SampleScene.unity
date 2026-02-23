@@ -700,12 +700,18 @@ MonoBehaviour:
   autoStart: 0
   allTrajectories: []
   allValidTrajectories: []
+  bestTrajectories: []
+  hoodPolynomial:
+    coefficients: []
+  flywheelPolynomial:
+    coefficients: []
   target: {fileID: 417951485}
   exitWall: {fileID: 668998388}
   flywheel: {fileID: 881787700}
   hood: {fileID: 792326238}
   hoodRoller: {fileID: 109168911}
   fuel: {fileID: 1489294362897707591, guid: 5ebb8fe7bc7a3834a8c394e83d2b2743, type: 3}
+  timescale: 1
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0
