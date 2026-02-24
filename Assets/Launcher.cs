@@ -1,10 +1,11 @@
+using MathNet.Numerics.LinearAlgebra;
+using Newtonsoft.Json;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using UnityEngine;
-using Newtonsoft.Json;
-using MathNet.Numerics.LinearAlgebra;
 
 public class Launcher : MonoBehaviour
 {
@@ -125,7 +126,7 @@ public class Launcher : MonoBehaviour
         FuelManager manager = obj.GetComponent<FuelManager>();
 
         Vector2 angleUnitVector = new Vector2(Mathf.Sin(angleDegs * Mathf.Deg2Rad), Mathf.Cos(angleDegs * Mathf.Deg2Rad));
-        Vector2 launchVector = angleUnitVector * getBallExitVelo(flywheelSpeed);
+        Vector2 launchVector = angleUnitVector * getBallExitVelo(flywheelSpeed) + new Vector2(robotVX, 0);
         manager.Launch(exitWall.position, launchVector);
 
         yield return new WaitUntil(() => manager.dead);
@@ -221,11 +222,20 @@ public class Launcher : MonoBehaviour
             }
         }
 
-        yield return StartCoroutine(GenerateHoodPolynomial(bestTrajectories));
+        List<Trajectory> finalBestTrajectories = new List<Trajectory>();
+        foreach (Trajectory traj in bestTrajectories)
+        {
+            if (traj != null)
+            {
+                finalBestTrajectories.Add(traj);
+            }
+        }
+
+        yield return StartCoroutine(GenerateHoodPolynomial(finalBestTrajectories));
         string hoodJson = JsonConvert.SerializeObject(hoodPolynomial);
         File.WriteAllText(hoodOutputPath, hoodJson);
 
-        yield return StartCoroutine(GenerateFlywheelPolynomial(bestTrajectories));
+        yield return StartCoroutine(GenerateFlywheelPolynomial(finalBestTrajectories));
         string flywheelJson = JsonConvert.SerializeObject(flywheelPolynomial);
         File.WriteAllText(flywheelOutputPath, flywheelJson);
 
@@ -268,19 +278,47 @@ public class Launcher : MonoBehaviour
         yield return null;
     }
 
-    IEnumerator GenerateHoodPolynomial(List<Trajectory> trajectories)
+    TwoVariablePolynomial3rdDegree FitTwoVariable3rdDegree(
+            List<Trajectory> trajectories,
+            Func<Trajectory, double> ySelector,
+            double ridgeLambda = 0.0)
     {
         int N = trajectories.Count;
-        var A = Matrix<double>.Build.Dense(N, 10);
+        const int M = 10;
+
+        if (N < M)
+            Console.WriteLine($"Warning: only {N} samples but {M} coefficients.");
+
+        // ----------- Compute means -----------
+        double xMean = trajectories.Average(t => t.initX);
+        double yMean = trajectories.Average(t => t.initVX);
+        double zMean = trajectories.Average(t => ySelector(t));
+
+        // ----------- Compute RMS scales around mean -----------
+        double xScale = Math.Sqrt(trajectories.Average(t =>
+            Math.Pow(t.initX - xMean, 2)));
+
+        double yScale = Math.Sqrt(trajectories.Average(t =>
+            Math.Pow(t.initVX - yMean, 2)));
+
+        double zScale = Math.Sqrt(trajectories.Average(t =>
+            Math.Pow(ySelector(t) - zMean, 2)));
+
+        if (xScale == 0) xScale = 1;
+        if (yScale == 0) yScale = 1;
+        if (zScale == 0) zScale = 1;
+
+        var A = Matrix<double>.Build.Dense(N, M);
         var b = Vector<double>.Build.Dense(N);
 
+        // ----------- Build normalized design matrix -----------
         for (int i = 0; i < N; i++)
         {
-            double x1 = trajectories[i].initX;
-            double x2 = trajectories[i].initVX;
-            double y = Mathf.Deg2Rad * trajectories[i].initTheta;
+            double x1 = (trajectories[i].initX - xMean) / xScale;
+            double x2 = (trajectories[i].initVX - yMean) / yScale;
+            double z = (ySelector(trajectories[i]) - zMean) / zScale;
 
-            A[i, 0] = 1;
+            A[i, 0] = 1.0;
             A[i, 1] = x1;
             A[i, 2] = x2;
             A[i, 3] = x1 * x1;
@@ -291,52 +329,55 @@ public class Launcher : MonoBehaviour
             A[i, 8] = x1 * x2 * x2;
             A[i, 9] = x2 * x2 * x2;
 
-            b[i] = y;
+            b[i] = z;
         }
 
-        var qr = A.QR();
-        Vector<double> coeffs = qr.Solve(b);
+        // ----------- Solve via SVD -----------
+        var svd = A.Svd(true);
+        Console.WriteLine($"Condition estimate: {svd.S[0] / svd.S[^1]:E}");
 
-        hoodPolynomial = new TwoVariablePolynomial3rdDegree
+        Vector<double> coeffs;
+
+        if (ridgeLambda <= 0.0)
         {
-            coefficients = coeffs.AsArray()
+            coeffs = svd.Solve(b);
+        }
+        else
+        {
+            var AtA = A.TransposeThisAndMultiply(A);
+            for (int j = 0; j < M; j++)
+                AtA[j, j] += ridgeLambda;
+
+            var Atb = A.TransposeThisAndMultiply(b);
+            coeffs = AtA.Solve(Atb);
+        }
+
+        return new TwoVariablePolynomial3rdDegree
+        {
+            coefficients = coeffs.AsArray(),
+
+            xMean = xMean,
+            yMean = yMean,
+            zMean = zMean,
+
+            xScale = xScale,
+            yScale = yScale,
+            zScale = zScale
         };
+    }
+
+    // Example usage:
+    IEnumerator GenerateHoodPolynomial(List<Trajectory> trajectories)
+    {
+        // y = radians(theta)
+        hoodPolynomial = FitTwoVariable3rdDegree(trajectories, traj => Mathf.Deg2Rad * traj.initTheta, ridgeLambda: 0.0);
         yield return null;
     }
 
     IEnumerator GenerateFlywheelPolynomial(List<Trajectory> trajectories)
     {
-        int N = trajectories.Count;
-        var A = Matrix<double>.Build.Dense(N, 10);
-        var b = Vector<double>.Build.Dense(N);
-
-        for (int i = 0; i < N; i++)
-        {
-            double x1 = trajectories[i].initX;
-            double x2 = trajectories[i].initVX;
-            double y = trajectories[i].initVFly;
-
-            A[i, 0] = 1;
-            A[i, 1] = x1;
-            A[i, 2] = x2;
-            A[i, 3] = x1 * x1;
-            A[i, 4] = x1 * x2;
-            A[i, 5] = x2 * x2;
-            A[i, 6] = x1 * x1 * x1;
-            A[i, 7] = x1 * x1 * x2;
-            A[i, 8] = x1 * x2 * x2;
-            A[i, 9] = x2 * x2 * x2;
-
-            b[i] = y;
-        }
-
-        var qr = A.QR();
-        Vector<double> coeffs = qr.Solve(b);
-
-        flywheelPolynomial = new TwoVariablePolynomial3rdDegree
-        {
-            coefficients = coeffs.AsArray()
-        };
+        // y = initial flywheel velocity (whatever units you use)
+        flywheelPolynomial = FitTwoVariable3rdDegree(trajectories, traj => traj.initVFly, ridgeLambda: 0.0);
         yield return null;
     }
 
@@ -397,5 +438,33 @@ public class Launcher : MonoBehaviour
     public class TwoVariablePolynomial3rdDegree
     {
         public double[] coefficients;
+
+        public double Evaluate(double x, double vx)
+        {
+            double x1 = (x - xMean) / xScale;
+            double x2 = (vx - yMean) / yScale;
+
+            double zNorm =
+                coefficients[0]
+              + coefficients[1] * x1
+              + coefficients[2] * x2
+              + coefficients[3] * x1 * x1
+              + coefficients[4] * x1 * x2
+              + coefficients[5] * x2 * x2
+              + coefficients[6] * x1 * x1 * x1
+              + coefficients[7] * x1 * x1 * x2
+              + coefficients[8] * x1 * x2 * x2
+              + coefficients[9] * x2 * x2 * x2;
+
+            return zNorm * zScale + zMean;
+        }
+
+        public double xScale;
+        public double yScale;
+        public double zScale;
+
+        public double xMean;
+        public double yMean;
+        public double zMean;
     }
 }
