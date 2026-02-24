@@ -281,9 +281,9 @@ namespace Headless
         // using System.Linq;
 
         TwoVariablePolynomial3rdDegree FitTwoVariable3rdDegree(
-    List<Trajectory> trajectories,
-    Func<Trajectory, double> ySelector,
-    double ridgeLambda = 0.0)
+            List<Trajectory> trajectories,
+            Func<Trajectory, double> ySelector,
+            double ridgeLambda = 0.0)
         {
             int N = trajectories.Count;
             const int M = 10;
