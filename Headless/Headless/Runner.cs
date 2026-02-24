@@ -74,14 +74,45 @@ namespace Headless
             //    ;
             //}
 
-            GenerateHoodPolynomial(bestTrajectories);
+            List<Trajectory> nonNullBestTrajectories = new List<Trajectory>();
+            foreach (var traj in bestTrajectories)
+            {
+                if (traj == null)
+                {
+                    Console.WriteLine("Invalid traj");
+                } else
+                {
+                    Console.WriteLine(JsonConvert.SerializeObject(traj));
+                    nonNullBestTrajectories.Add(traj);
+                }
+            }
+
+            GenerateHoodPolynomial(nonNullBestTrajectories);
             
+            string nonNullBestTrajectoriesJson = JsonConvert.SerializeObject(nonNullBestTrajectories);
+            File.WriteAllText("nonNullBestTrajectories.json", nonNullBestTrajectoriesJson);
+
             string hoodJson = JsonConvert.SerializeObject(hoodPolynomial);
             File.WriteAllText(hoodOutputPath, hoodJson);
 
-            GenerateFlywheelPolynomial(bestTrajectories);
+            GenerateFlywheelPolynomial(nonNullBestTrajectories);
             string flywheelJson = JsonConvert.SerializeObject(flywheelPolynomial);
             File.WriteAllText(flywheelOutputPath, flywheelJson);
+
+            double totalError = 0;
+            for (int i = 0; i < nonNullBestTrajectories.Count; i++)
+            {
+                double predicted = hoodPolynomial.Evaluate(
+                    nonNullBestTrajectories[i].initX,
+                    nonNullBestTrajectories[i].initVX);
+
+                double actual = Helpers.deg2rad * nonNullBestTrajectories[i].initTheta;
+
+                double err = predicted - actual;
+                totalError += err * err;
+            }
+
+            Console.WriteLine("RMSE: " + Math.Sqrt(totalError / nonNullBestTrajectories.Count));
         }
 
         void Awake()
@@ -133,7 +164,7 @@ namespace Headless
             Fuel obj = new Fuel();
 
             Vector2 angleUnitVector = new Vector2(Mathf.Sin(angleDegs * Helpers.deg2rad), Mathf.Cos(angleDegs * Helpers.deg2rad));
-            Vector2 launchVector = angleUnitVector * getBallExitVelo(flywheelSpeed);
+            Vector2 launchVector = angleUnitVector * getBallExitVelo(flywheelSpeed) + new Vector2(robotVX, 0);
             //Console.WriteLine("Launch vector: " + launchVector);
             obj.init();
             obj.Launch(findLaunchPos(robotX, angleDegs), launchVector);
@@ -249,19 +280,32 @@ namespace Headless
             
         }
 
-        void GenerateHoodPolynomial(List<Trajectory> trajectories)
+        // using MathNet.Numerics.LinearAlgebra;
+        // using MathNet.Numerics.LinearAlgebra.Double;
+        // using System.Linq;
+
+        TwoVariablePolynomial3rdDegree FitTwoVariable3rdDegree(List<Trajectory> trajectories, Func<Trajectory, double> ySelector, double ridgeLambda = 0.0)
         {
             int N = trajectories.Count;
-            var A = Matrix<double>.Build.Dense(N, 10);
+            const int M = 10; // number of coefficients for 3rd degree two-variable (1, x, vx, x^2, x vx, vx^2, x^3, x^2 vx, x vx^2, vx^3)
+
+            if (N < M)
+            {
+                // Not enough equations to determine 10 coefficients uniquely.
+                // You can either return a lower-degree fit, collect more data, or use regularization (ridge).
+                Console.WriteLine($"Warning: only {N} samples but {M} coefficients. Solution will be underdetermined or unstable.");
+            }
+
+            var A = Matrix<double>.Build.Dense(N, M);
             var b = Vector<double>.Build.Dense(N);
 
             for (int i = 0; i < N; i++)
             {
                 double x1 = trajectories[i].initX;
                 double x2 = trajectories[i].initVX;
-                double y = Helpers.deg2rad * trajectories[i].initTheta;
+                double y = ySelector(trajectories[i]);
 
-                A[i, 0] = 1;
+                A[i, 0] = 1.0;
                 A[i, 1] = x1;
                 A[i, 2] = x2;
                 A[i, 3] = x1 * x1;
@@ -275,48 +319,62 @@ namespace Headless
                 b[i] = y;
             }
 
-            var qr = A.QR();
-            Vector<double> coeffs = qr.Solve(b);
-
-            hoodPolynomial = new TwoVariablePolynomial3rdDegree
+            // Column scaling: compute L2 norms of each column and scale columns to have unit norm.
+            var colScales = new double[M];
+            for (int j = 0; j < M; j++)
             {
-                coefficients = coeffs.AsArray()
+                double norm = A.Column(j).L2Norm();
+                // prevent divide-by-zero: if column is all-zero, keep scale = 1
+                colScales[j] = (norm > 0.0) ? norm : 1.0;
+                A.SetColumn(j, A.Column(j) / colScales[j]);
+            }
+
+            // Solve with SVD (stable). Optionally apply ridge regularization by modifying singular values.
+            var svd = A.Svd(true);
+            double cond = svd.S[0] / svd.S[svd.S.Count - 1];
+            Console.WriteLine($"SVD condition estimate: {cond:E}");
+
+            // Option 1: basic solve via SVD
+            Vector<double> coeffsScaled;
+            if (ridgeLambda <= 0.0)
+            {
+                coeffsScaled = svd.Solve(b);
+            }
+            else
+            {
+                // Ridge: Solve (A^T A + lambda I) c = A^T b
+                var AtA = A.TransposeThisAndMultiply(A);
+                for (int j = 0; j < M; j++) AtA[j, j] += ridgeLambda;
+                var Atb = A.TransposeThisAndMultiply(b);
+                coeffsScaled = AtA.Solve(Atb); // uses a direct solver
+            }
+
+            // Unscale coefficients to original basis: c_original[j] = c_scaled[j] / colScales[j]
+            var coeffs = Vector<double>.Build.Dense(M);
+            for (int j = 0; j < M; j++)
+                coeffs[j] = coeffsScaled[j] / colScales[j];
+
+            // (optional) compute residual and print for debugging
+            var residual = A * coeffsScaled - b; // note: A is scaled; to compute residual in original basis use unscaled A if desired
+            Console.WriteLine($"Residual L2 norm (on scaled A): {residual.L2Norm():E}");
+
+            return new TwoVariablePolynomial3rdDegree
+            {
+                coefficients = coeffs.AsArray() // keep ordering consistent with A columns above
             };
+        }
+
+        // Example usage:
+        void GenerateHoodPolynomial(List<Trajectory> trajectories)
+        {
+            // y = radians(theta)
+            hoodPolynomial = FitTwoVariable3rdDegree(trajectories, traj => Helpers.deg2rad * traj.initTheta, ridgeLambda: 0.0);
         }
 
         void GenerateFlywheelPolynomial(List<Trajectory> trajectories)
         {
-            int N = trajectories.Count;
-            var A = Matrix<double>.Build.Dense(N, 10);
-            var b = Vector<double>.Build.Dense(N);
-
-            for (int i = 0; i < N; i++)
-            {
-                double x1 = trajectories[i].initX;
-                double x2 = trajectories[i].initVX;
-                double y = trajectories[i].initVFly;
-
-                A[i, 0] = 1;
-                A[i, 1] = x1;
-                A[i, 2] = x2;
-                A[i, 3] = x1 * x1;
-                A[i, 4] = x1 * x2;
-                A[i, 5] = x2 * x2;
-                A[i, 6] = x1 * x1 * x1;
-                A[i, 7] = x1 * x1 * x2;
-                A[i, 8] = x1 * x2 * x2;
-                A[i, 9] = x2 * x2 * x2;
-
-                b[i] = y;
-            }
-
-            var qr = A.QR();
-            Vector<double> coeffs = qr.Solve(b);
-
-            flywheelPolynomial = new TwoVariablePolynomial3rdDegree
-            {
-                coefficients = coeffs.AsArray()
-            };
+            // y = initial flywheel velocity (whatever units you use)
+            flywheelPolynomial = FitTwoVariable3rdDegree(trajectories, traj => traj.initVFly, ridgeLambda: 0.0);
         }
 
 
@@ -376,6 +434,23 @@ namespace Headless
         public class TwoVariablePolynomial3rdDegree
         {
             public double[] coefficients;
+
+            public double Evaluate(double x, double vx)
+            {
+                var c = coefficients;
+
+                return
+                    c[0] +
+                    c[1] * x +
+                    c[2] * vx +
+                    c[3] * x * x +
+                    c[4] * x * vx +
+                    c[5] * vx * vx +
+                    c[6] * x * x * x +
+                    c[7] * x * x * vx +
+                    c[8] * x * vx * vx +
+                    c[9] * vx * vx * vx;
+            }
         }
     }
 }

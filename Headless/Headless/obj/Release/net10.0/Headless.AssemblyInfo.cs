@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Headless")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2c6dc5a798be6d6df69a23836a5985e9e2c82719")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f326d57c483ce9812bb2ab157d647e86e92a3a71")]
 [assembly: System.Reflection.AssemblyProductAttribute("Headless")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Headless")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
