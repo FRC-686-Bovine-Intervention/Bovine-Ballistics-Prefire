@@ -88,10 +88,6 @@ namespace Headless
             }
 
             GenerateHoodPolynomial(nonNullBestTrajectories);
-            
-            string nonNullBestTrajectoriesJson = JsonConvert.SerializeObject(nonNullBestTrajectories);
-            File.WriteAllText("nonNullBestTrajectories.json", nonNullBestTrajectoriesJson);
-
             string hoodJson = JsonConvert.SerializeObject(hoodPolynomial);
             File.WriteAllText(hoodOutputPath, hoodJson);
 
@@ -284,26 +280,45 @@ namespace Headless
         // using MathNet.Numerics.LinearAlgebra.Double;
         // using System.Linq;
 
-        TwoVariablePolynomial3rdDegree FitTwoVariable3rdDegree(List<Trajectory> trajectories, Func<Trajectory, double> ySelector, double ridgeLambda = 0.0)
+        TwoVariablePolynomial3rdDegree FitTwoVariable3rdDegree(
+    List<Trajectory> trajectories,
+    Func<Trajectory, double> ySelector,
+    double ridgeLambda = 0.0)
         {
             int N = trajectories.Count;
-            const int M = 10; // number of coefficients for 3rd degree two-variable (1, x, vx, x^2, x vx, vx^2, x^3, x^2 vx, x vx^2, vx^3)
+            const int M = 10;
 
             if (N < M)
-            {
-                // Not enough equations to determine 10 coefficients uniquely.
-                // You can either return a lower-degree fit, collect more data, or use regularization (ridge).
-                Console.WriteLine($"Warning: only {N} samples but {M} coefficients. Solution will be underdetermined or unstable.");
-            }
+                Console.WriteLine($"Warning: only {N} samples but {M} coefficients.");
+
+            // ----------- Compute means -----------
+            double xMean = trajectories.Average(t => t.initX);
+            double yMean = trajectories.Average(t => t.initVX);
+            double zMean = trajectories.Average(t => ySelector(t));
+
+            // ----------- Compute RMS scales around mean -----------
+            double xScale = Math.Sqrt(trajectories.Average(t =>
+                Math.Pow(t.initX - xMean, 2)));
+
+            double yScale = Math.Sqrt(trajectories.Average(t =>
+                Math.Pow(t.initVX - yMean, 2)));
+
+            double zScale = Math.Sqrt(trajectories.Average(t =>
+                Math.Pow(ySelector(t) - zMean, 2)));
+
+            if (xScale == 0) xScale = 1;
+            if (yScale == 0) yScale = 1;
+            if (zScale == 0) zScale = 1;
 
             var A = Matrix<double>.Build.Dense(N, M);
             var b = Vector<double>.Build.Dense(N);
 
+            // ----------- Build normalized design matrix -----------
             for (int i = 0; i < N; i++)
             {
-                double x1 = trajectories[i].initX;
-                double x2 = trajectories[i].initVX;
-                double y = ySelector(trajectories[i]);
+                double x1 = (trajectories[i].initX - xMean) / xScale;
+                double x2 = (trajectories[i].initVX - yMean) / yScale;
+                double z = (ySelector(trajectories[i]) - zMean) / zScale;
 
                 A[i, 0] = 1.0;
                 A[i, 1] = x1;
@@ -316,51 +331,40 @@ namespace Headless
                 A[i, 8] = x1 * x2 * x2;
                 A[i, 9] = x2 * x2 * x2;
 
-                b[i] = y;
+                b[i] = z;
             }
 
-            // Column scaling: compute L2 norms of each column and scale columns to have unit norm.
-            var colScales = new double[M];
-            for (int j = 0; j < M; j++)
-            {
-                double norm = A.Column(j).L2Norm();
-                // prevent divide-by-zero: if column is all-zero, keep scale = 1
-                colScales[j] = (norm > 0.0) ? norm : 1.0;
-                A.SetColumn(j, A.Column(j) / colScales[j]);
-            }
-
-            // Solve with SVD (stable). Optionally apply ridge regularization by modifying singular values.
+            // ----------- Solve via SVD -----------
             var svd = A.Svd(true);
-            double cond = svd.S[0] / svd.S[svd.S.Count - 1];
-            Console.WriteLine($"SVD condition estimate: {cond:E}");
+            Console.WriteLine($"Condition estimate: {svd.S[0] / svd.S[^1]:E}");
 
-            // Option 1: basic solve via SVD
-            Vector<double> coeffsScaled;
+            Vector<double> coeffs;
+
             if (ridgeLambda <= 0.0)
             {
-                coeffsScaled = svd.Solve(b);
+                coeffs = svd.Solve(b);
             }
             else
             {
-                // Ridge: Solve (A^T A + lambda I) c = A^T b
                 var AtA = A.TransposeThisAndMultiply(A);
-                for (int j = 0; j < M; j++) AtA[j, j] += ridgeLambda;
+                for (int j = 0; j < M; j++)
+                    AtA[j, j] += ridgeLambda;
+
                 var Atb = A.TransposeThisAndMultiply(b);
-                coeffsScaled = AtA.Solve(Atb); // uses a direct solver
+                coeffs = AtA.Solve(Atb);
             }
-
-            // Unscale coefficients to original basis: c_original[j] = c_scaled[j] / colScales[j]
-            var coeffs = Vector<double>.Build.Dense(M);
-            for (int j = 0; j < M; j++)
-                coeffs[j] = coeffsScaled[j] / colScales[j];
-
-            // (optional) compute residual and print for debugging
-            var residual = A * coeffsScaled - b; // note: A is scaled; to compute residual in original basis use unscaled A if desired
-            Console.WriteLine($"Residual L2 norm (on scaled A): {residual.L2Norm():E}");
 
             return new TwoVariablePolynomial3rdDegree
             {
-                coefficients = coeffs.AsArray() // keep ordering consistent with A columns above
+                coefficients = coeffs.AsArray(),
+
+                xMean = xMean,
+                yMean = yMean,
+                zMean = zMean,
+
+                xScale = xScale,
+                yScale = yScale,
+                zScale = zScale
             };
         }
 
@@ -437,20 +441,31 @@ namespace Headless
 
             public double Evaluate(double x, double vx)
             {
-                var c = coefficients;
+                double x1 = (x - xMean) / xScale;
+                double x2 = (vx - yMean) / yScale;
 
-                return
-                    c[0] +
-                    c[1] * x +
-                    c[2] * vx +
-                    c[3] * x * x +
-                    c[4] * x * vx +
-                    c[5] * vx * vx +
-                    c[6] * x * x * x +
-                    c[7] * x * x * vx +
-                    c[8] * x * vx * vx +
-                    c[9] * vx * vx * vx;
+                double zNorm =
+                    coefficients[0]
+                  + coefficients[1] * x1
+                  + coefficients[2] * x2
+                  + coefficients[3] * x1 * x1
+                  + coefficients[4] * x1 * x2
+                  + coefficients[5] * x2 * x2
+                  + coefficients[6] * x1 * x1 * x1
+                  + coefficients[7] * x1 * x1 * x2
+                  + coefficients[8] * x1 * x2 * x2
+                  + coefficients[9] * x2 * x2 * x2;
+
+                return zNorm * zScale + zMean;
             }
+
+            public double xScale;
+            public double yScale;
+            public double zScale;
+
+            public double xMean;
+            public double yMean;
+            public double zMean;
         }
     }
 }
