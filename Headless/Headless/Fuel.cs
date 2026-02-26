@@ -22,6 +22,7 @@ namespace Headless
         public Vector2 initPos;
         public Vector2 end;
         public float maxHeight;
+        public float tof = 0.0f;
 
         Ball fuel;
 
@@ -58,6 +59,7 @@ namespace Headless
             p += v * deltaTime;
 
             fuel.position = p;
+            tof += deltaTime;
 
             if (fuel.HasHitAnyWall(Wall.allKillWalls, true))
             {
