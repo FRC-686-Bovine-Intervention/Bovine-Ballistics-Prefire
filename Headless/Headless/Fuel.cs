@@ -61,20 +61,22 @@ namespace Headless
             fuel.position = p;
             tof += deltaTime;
 
-            if (fuel.HasHitAnyWall(Wall.allKillWalls, true))
+            if (fuel.HasHitAnyWall(Wall.allKillWalls, true) || fuel.HasHitAnyWall(Wall.hubSides))
             {
                 dead = true;
                 madeIt = false;
                 end = fuel.position;
+                //Console.WriteLine("dead from hub ors floor");
             }
             else if (fuel.HasHitWall(Wall.hubTop))
             {
                 madeIt = true;
             }
-            else if (fuel.HasHitWall(Wall.hubBottom))
+            else if (fuel.HasHitWall(Wall.hubBottom) || fuel.HasHitAnyWallReverse(Wall.hubSides))
             {
                 dead = true;
                 end = fuel.position;
+                //Console.WriteLine("dead from hub bottom or side walls");
             }
 
             //Console.WriteLine("Success: " + madeIt);
