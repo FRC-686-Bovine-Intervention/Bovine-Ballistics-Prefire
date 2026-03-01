@@ -10,7 +10,7 @@ A physics simulator and multivariable polynomial generator for the 2026 FRC seas
 - [x] Add JSON configuration
 - [x] Add simulation speed adjustment
 - [x] Add automatic polynomial generation
-- [ ] Integrate with robot gradle
+- [x] Integrate with robot gradle (see Robot-2026-Rebuilt)
 ##
 ### Using the simulator:
 Ballistics comes in two flavors. Both have the same physics simulation under the hood, but there are some subtle differences to be aware of. Below are the features of each.
