@@ -4,7 +4,7 @@ A physics simulator and multivariable polynomial generator for the 2026 FRC seas
 ### Project Goals:
 - [x] Achieve a basic physics simulation
 - [x] Achieve air resistance simulation
-- [ ] Achieve Magnus force simulation
+- [ ] Achieve Magnus force simulation (currently not planned soon)
 - [x] Have a visual version
 - [x] Add argument support to both versions
 - [x] Add JSON configuration
