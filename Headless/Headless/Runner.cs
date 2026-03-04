@@ -16,12 +16,14 @@ namespace Headless
 
         public TwoVariablePolynomial3rdDegree hoodPolynomial;
         public TwoVariablePolynomial3rdDegree flywheelPolynomial;
+        public TwoVariablePolynomial3rdDegree tofPolynomial;
 
         public float launchPointR;
 
         private string dataInputPath = "shooter.json";
         private string hoodOutputPath = "hoodPolynomial.json";
         private string flywheelOutputPath = "flywheelPolynomial.json";
+        private string tofOutputPath = "tofPolynomial.json";
 
         /*----ALL PARAMETERS FOR SHOOTER HERE----*/
         ShooterConfig config;
@@ -95,6 +97,10 @@ namespace Headless
             string flywheelJson = JsonConvert.SerializeObject(flywheelPolynomial);
             File.WriteAllText(flywheelOutputPath, flywheelJson);
 
+            GenerateTOFPolynomial(nonNullBestTrajectories);
+            string tofJson = JsonConvert.SerializeObject(tofPolynomial);
+            File.WriteAllText(tofOutputPath, tofJson);
+
             double totalError = 0;
             for (int i = 0; i < nonNullBestTrajectories.Count; i++)
             {
@@ -125,11 +131,13 @@ namespace Headless
                 {
                     hoodOutputPath = outdir + hoodOutputPath;
                     flywheelOutputPath = outdir + flywheelOutputPath;
+                    tofOutputPath = outdir + tofOutputPath;
                 }
                 else
                 {
                     hoodOutputPath = outdir + "/" + hoodOutputPath;
                     flywheelOutputPath = outdir + "/" + flywheelOutputPath;
+                    tofOutputPath = outdir + "/" + tofOutputPath;
                 }
             }
 
@@ -180,6 +188,7 @@ namespace Headless
                 maxHeight = obj.maxHeight,
                 landingX = obj.end.X,
                 landingY = obj.end.Y,
+                tof = obj.tof
             };
 
             //allTrajectories.Add(traj);
@@ -381,6 +390,11 @@ namespace Headless
             flywheelPolynomial = FitTwoVariable3rdDegree(trajectories, traj => traj.initVFly, ridgeLambda: 0.0);
         }
 
+        void GenerateTOFPolynomial(List<Trajectory> trajectories)
+        {
+            tofPolynomial = FitTwoVariable3rdDegree(trajectories, traj => traj.tof, ridgeLambda: 0.0);
+        }
+
 
         public float getBallExitVelo(float vFly)
         {
@@ -399,6 +413,8 @@ namespace Headless
             public float maxHeight { get; set; }
             public float landingX { get; set; }
             public float landingY { get; set; }
+
+            public float tof { get; set; }
         }
 
         [Serializable]

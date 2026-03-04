@@ -54,6 +54,25 @@ namespace Headless
             return false;
         }
 
+        public bool HasHitWallReverse(Wall wall)
+        {
+            var toWallOriginPrevious = wall.origin - previousPosition;
+            var distanceToWallPrevious = Helpers.Dot(toWallOriginPrevious, wall.orthogonalVector) - radius;
+            var toWallOrigin = wall.origin - position;
+            var distanceToWall = Helpers.Dot(toWallOrigin, wall.orthogonalVector) - radius;
+
+            var inlineDistancePrevious = Helpers.Dot(toWallOriginPrevious, wall.inlineVector);
+            var inlineDistance = Helpers.Dot(toWallOrigin, wall.inlineVector);
+
+            //Console.WriteLine("To Wall Dist: " + distanceToWall);
+            //Console.WriteLine("Inline Dist: " + inlineDistance);
+
+            if (distanceToWall >= 0 && distanceToWallPrevious < 0 && Mathf.Abs(inlineDistance) < wall.length / 2)
+            {
+                return true;
+            }
+            return false;
+        }
         public bool HasHitWall(Wall wall)
         {
             return HasHitWall(wall, false);
@@ -64,6 +83,18 @@ namespace Headless
             foreach (var wall in walls)
             {
                 if (HasHitWall(wall, actOnBothSides))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public bool HasHitAnyWallReverse(Wall[] walls)
+        {
+            foreach (var wall in walls)
+            {
+                if (HasHitWallReverse(wall))
                 {
                     return true;
                 }

@@ -1,24 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\lazec\\Documents\\Programming\\GitHub\\Bovine-Ballistics-Prefire\\Headless\\Headless\\Headless.csproj": {}
+    "C:\\Users\\lazec\\Documents\\Programming\\FRC\\Bovine-Ballistics-Prefire\\Headless\\Headless\\Headless.csproj": {}
   },
   "projects": {
-    "C:\\Users\\lazec\\Documents\\Programming\\GitHub\\Bovine-Ballistics-Prefire\\Headless\\Headless\\Headless.csproj": {
+    "C:\\Users\\lazec\\Documents\\Programming\\FRC\\Bovine-Ballistics-Prefire\\Headless\\Headless\\Headless.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\lazec\\Documents\\Programming\\GitHub\\Bovine-Ballistics-Prefire\\Headless\\Headless\\Headless.csproj",
+        "projectUniqueName": "C:\\Users\\lazec\\Documents\\Programming\\FRC\\Bovine-Ballistics-Prefire\\Headless\\Headless\\Headless.csproj",
         "projectName": "Headless",
-        "projectPath": "C:\\Users\\lazec\\Documents\\Programming\\GitHub\\Bovine-Ballistics-Prefire\\Headless\\Headless\\Headless.csproj",
+        "projectPath": "C:\\Users\\lazec\\Documents\\Programming\\FRC\\Bovine-Ballistics-Prefire\\Headless\\Headless\\Headless.csproj",
         "packagesPath": "C:\\Users\\lazec\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\lazec\\Documents\\Programming\\GitHub\\Bovine-Ballistics-Prefire\\Headless\\Headless\\obj\\",
+        "outputPath": "C:\\Users\\lazec\\Documents\\Programming\\FRC\\Bovine-Ballistics-Prefire\\Headless\\Headless\\obj\\",
         "projectStyle": "PackageReference",
-        "fallbackFolders": [
-          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
-        ],
         "configFilePaths": [
           "C:\\Users\\lazec\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
