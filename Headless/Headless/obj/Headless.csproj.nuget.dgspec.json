@@ -1,27 +1,25 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\lazec\\Documents\\Programming\\FRC\\Bovine-Ballistics-Prefire\\Headless\\Headless\\Headless.csproj": {}
+    "/home/ladle/Documents/Programming/FRC/Bovine-Ballistics-Prefire/Headless/Headless/Headless.csproj": {}
   },
   "projects": {
-    "C:\\Users\\lazec\\Documents\\Programming\\FRC\\Bovine-Ballistics-Prefire\\Headless\\Headless\\Headless.csproj": {
+    "/home/ladle/Documents/Programming/FRC/Bovine-Ballistics-Prefire/Headless/Headless/Headless.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\lazec\\Documents\\Programming\\FRC\\Bovine-Ballistics-Prefire\\Headless\\Headless\\Headless.csproj",
+        "projectUniqueName": "/home/ladle/Documents/Programming/FRC/Bovine-Ballistics-Prefire/Headless/Headless/Headless.csproj",
         "projectName": "Headless",
-        "projectPath": "C:\\Users\\lazec\\Documents\\Programming\\FRC\\Bovine-Ballistics-Prefire\\Headless\\Headless\\Headless.csproj",
-        "packagesPath": "C:\\Users\\lazec\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\lazec\\Documents\\Programming\\FRC\\Bovine-Ballistics-Prefire\\Headless\\Headless\\obj\\",
+        "projectPath": "/home/ladle/Documents/Programming/FRC/Bovine-Ballistics-Prefire/Headless/Headless/Headless.csproj",
+        "packagesPath": "/home/ladle/.nuget/packages/",
+        "outputPath": "/home/ladle/Documents/Programming/FRC/Bovine-Ballistics-Prefire/Headless/Headless/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\lazec\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+          "/home/ladle/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net10.0"
         ],
         "sources": {
-          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -54,18 +52,6 @@
               "target": "Package",
               "version": "[5.0.0, )"
             },
-            "Microsoft.DotNet.ILCompiler": {
-              "suppressParent": "All",
-              "target": "Package",
-              "version": "[10.0.3, )",
-              "autoReferenced": true
-            },
-            "Microsoft.NET.ILLink.Tasks": {
-              "suppressParent": "All",
-              "target": "Package",
-              "version": "[10.0.3, )",
-              "autoReferenced": true
-            },
             "Newtonsoft.Json": {
               "target": "Package",
               "version": "[13.0.4, )"
@@ -84,7 +70,7 @@
           "warn": true,
           "downloadDependencies": [
             {
-              "name": "runtime.win-x64.Microsoft.DotNet.ILCompiler",
+              "name": "Microsoft.NETCore.App.Host.linux-x64",
               "version": "[10.0.3, 10.0.3]"
             }
           ],
@@ -93,7 +79,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.103/PortableRuntimeIdentifierGraph.json",
+          "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/10.0.103/PortableRuntimeIdentifierGraph.json",
           "packagesToPrune": {
             "Microsoft.CSharp": "(,4.7.32767]",
             "Microsoft.VisualBasic": "(,10.4.32767]",
@@ -368,6 +354,11 @@
             "System.Xml.XPath": "(,4.3.32767]",
             "System.Xml.XPath.XDocument": "(,5.0.32767]"
           }
+        }
+      },
+      "runtimes": {
+        "linux-x64": {
+          "#import": []
         }
       }
     }
