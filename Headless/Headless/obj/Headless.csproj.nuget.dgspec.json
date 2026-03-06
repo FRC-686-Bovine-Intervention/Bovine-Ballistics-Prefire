@@ -1,25 +1,31 @@
 {
   "format": 1,
   "restore": {
-    "/home/ladle/Documents/Programming/FRC/Bovine-Ballistics-Prefire/Headless/Headless/Headless.csproj": {}
+    "C:\\Users\\lazec\\Documents\\Programming\\GitHub\\Bovine-Ballistics-Prefire\\Headless\\Headless\\Headless.csproj": {}
   },
   "projects": {
-    "/home/ladle/Documents/Programming/FRC/Bovine-Ballistics-Prefire/Headless/Headless/Headless.csproj": {
+    "C:\\Users\\lazec\\Documents\\Programming\\GitHub\\Bovine-Ballistics-Prefire\\Headless\\Headless\\Headless.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/home/ladle/Documents/Programming/FRC/Bovine-Ballistics-Prefire/Headless/Headless/Headless.csproj",
+        "projectUniqueName": "C:\\Users\\lazec\\Documents\\Programming\\GitHub\\Bovine-Ballistics-Prefire\\Headless\\Headless\\Headless.csproj",
         "projectName": "Headless",
-        "projectPath": "/home/ladle/Documents/Programming/FRC/Bovine-Ballistics-Prefire/Headless/Headless/Headless.csproj",
-        "packagesPath": "/home/ladle/.nuget/packages/",
-        "outputPath": "/home/ladle/Documents/Programming/FRC/Bovine-Ballistics-Prefire/Headless/Headless/obj/",
+        "projectPath": "C:\\Users\\lazec\\Documents\\Programming\\GitHub\\Bovine-Ballistics-Prefire\\Headless\\Headless\\Headless.csproj",
+        "packagesPath": "C:\\Users\\lazec\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\lazec\\Documents\\Programming\\GitHub\\Bovine-Ballistics-Prefire\\Headless\\Headless\\obj\\",
         "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
         "configFilePaths": [
-          "/home/ladle/.nuget/NuGet/NuGet.Config"
+          "C:\\Users\\lazec\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
           "net10.0"
         ],
         "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -79,7 +85,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/10.0.103/PortableRuntimeIdentifierGraph.json",
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.103/PortableRuntimeIdentifierGraph.json",
           "packagesToPrune": {
             "Microsoft.CSharp": "(,4.7.32767]",
             "Microsoft.VisualBasic": "(,10.4.32767]",
