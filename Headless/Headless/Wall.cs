@@ -58,12 +58,12 @@ namespace Headless
         {
             floor,
             hub[0], hub[1], hub[2], hub[3],
+            hub2
         };
 
         public static Wall[] hubSides = new Wall[]
         {
-            hub1,
-            hub2
+            hub1
         };
         
         public static Wall[] CreateRectangle(float width, float height, Vector2 center)
