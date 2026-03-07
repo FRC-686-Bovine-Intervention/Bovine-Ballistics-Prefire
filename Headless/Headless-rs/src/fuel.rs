@@ -51,7 +51,7 @@ impl Fuel {
         }
     }
 
-    pub fn update(&self, delta_time: f64) {
+    pub fn update(&mut self, delta_time: f64) {
         if !self.simulating {return;}
         self.fuel.previous_position = self.p;
 
@@ -76,13 +76,13 @@ impl Fuel {
 
         self.tof += delta_time;
 
-        if self.fuel.has_hit_any(*wall::ALL_KILL_WALLS, true) || self.fuel.has_hit_any(*wall::HUB_SIDES, false) {
+        if self.fuel.has_hit_any(wall::ALL_KILL_WALLS.clone(), true) || self.fuel.has_hit_any(wall::HUB_SIDES.clone(), false) {
             self.dead = true;
             self.made_it = false;
             self.end = self.fuel.position;
         } else if self.fuel.has_hit(*wall::HUB_TOP, false) {
             self.made_it = true;
-        } else if self.fuel.has_hit(wall::HUB_BOTTOM, false) || self.fuel.has_hit_any_reverse(*wall::HUB_SIDES) {
+        } else if self.fuel.has_hit(*wall::HUB_BOTTOM, false) || self.fuel.has_hit_any_reverse(wall::HUB_SIDES.clone()) {
             self.dead = true;
             self.end = self.fuel.position;
         }

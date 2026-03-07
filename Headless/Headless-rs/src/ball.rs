@@ -1,4 +1,4 @@
-use crate::vec2::{self, Vec2};
+use crate::{vec2::{self, Vec2}, wall::Wall};
 
 pub struct Ball {
     pub previous_position: Vec2,
