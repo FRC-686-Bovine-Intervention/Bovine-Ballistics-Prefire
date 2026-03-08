@@ -29,7 +29,7 @@ pub struct Fuel {
 
 impl Fuel {
     pub fn new(pos: Vec2, vel: Vec2) -> Self {
-        let r = 0.150114;
+        let r = 0.150114/2.0;
         Fuel {
             r,
             drag_coeff: 0.47,
