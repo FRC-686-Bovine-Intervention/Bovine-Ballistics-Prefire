@@ -429,7 +429,7 @@ namespace Headless
 
             public float maxVFly;
             public float minVFly;
-            public float vFlyMaxTries;
+            public int vFlyMaxTries;
 
             public float minAngle;
             public float maxAngle;

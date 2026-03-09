@@ -1,3 +1,4 @@
+Headless/Headless-rs/target
 .vs/
 .utmp/
 /[Ll]ibrary/
@@ -101,3 +102,6 @@ InitTestScene*.unity*
 shooter.json
 hoodPolynomial.json
 flywheelPolynomial.json
+tofPolynomial.json
+
+.rustc-info.json
