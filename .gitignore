@@ -103,3 +103,5 @@ shooter.json
 hoodPolynomial.json
 flywheelPolynomial.json
 tofPolynomial.json
+
+.rustc-info.json
