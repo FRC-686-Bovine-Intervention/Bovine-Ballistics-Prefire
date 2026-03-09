@@ -190,7 +190,7 @@ fn evaluate_trajectories(trajectories: &Vec<Option<Trajectory>>, internal_config
             let dx = trajectory2.landingX - trajectory.landingX;
             let robustness_score = ((dx / config.vFlyDev).powi(2) + (dx / config.angleDev).powi(2)) * config.robustnessFactor;
             
-            let height_score = trajectory.maxHeight * config.heightFactor;
+            let height_score = (config.maxAngle - trajectory.initTheta) * config.heightFactor;
 
             let total_score = robustness_score + height_score;
             if total_score < lowest_score {
