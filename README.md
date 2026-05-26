@@ -1,4 +1,5 @@
 # Bovine Ballistics Prefire
+# MAJOR NOTE: Bovine Ballistics is being rewritten. The repo is incredibly cluttered, and the GUI version needs to be removed. Furthermore, I want to add more control to the user to make it game-agnostic and also use the predicted air in the event city (taken from the Blue Alliance and some free weather API) so it can be regenerated each time.
 A physics simulator and multivariable polynomial generator for the 2026 FRC season. It is based primarily on the work of FRC 1690 in [this video](https://youtu.be/N6ogT5DjGOk?si=JThpThN7udolmcYm&t=2815).
 ##
 ### Project Goals:
