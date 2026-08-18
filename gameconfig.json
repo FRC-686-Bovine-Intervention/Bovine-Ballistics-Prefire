@@ -1,0 +1,73 @@
+{
+    "projectile" : {
+        "r" : 0.0,
+        "area" : 0.0,
+        "resistance_coefficient" : 0.0,
+        "magnus_coefficient" : 0.0,
+        "mass" : 0.0
+    },
+    "environment" : {
+        "air_density" : 1.225,
+        "g" : 9.81,
+        "success_walls" : [
+            {
+                "left_point" : {
+                    "x" : 0.0,
+                    "y" : 0.0
+                },
+                "right_point" : {
+                    "x" : 10.0,
+                    "y" : 0.0
+                },
+                "origin" : {
+                    "x" : 0.0,
+                    "y" : 0.0
+                },
+                "orthogonal" : {
+                    "x" : 0.0,
+                    "y" : 1.0
+                },
+                "reverse_orthogonal" : {
+                    "x" : 0.0,
+                    "y" : -1.0
+                },
+                "inline" : {
+                    "x" : 1.0,
+                    "y" : 0.0
+                },
+                "length" : 0.0,
+                "works_reverse" : false
+            }
+        ],
+        "failure_walls" : [
+            {
+                "left_point" : {
+                    "x" : 0.0,
+                    "y" : 0.0
+                },
+                "right_point" : {
+                    "x" : 10.0,
+                    "y" : 0.0
+                },
+                "origin" : {
+                    "x" : 0.0,
+                    "y" : 0.0
+                },
+                "orthogonal" : {
+                    "x" : 0.0,
+                    "y" : 1.0
+                },
+                "reverse_orthogonal" : {
+                    "x" : 0.0,
+                    "y" : -1.0
+                },
+                "inline" : {
+                    "x" : 1.0,
+                    "y" : 0.0
+                },
+                "length" : 0.0,
+                "works_reverse" : false
+            }
+        ]
+    }
+}
