@@ -15,6 +15,18 @@ pub struct Wall {
     pub works_reverse: bool,
 }
 
+#[derive(Copy, Clone)]
+#[derive(Deserialize, Debug)]
+pub struct EasyWall {
+    pub is_line: bool,
+    pub left_point: Vec2,
+    pub right_point: Vec2,
+    pub origin: Vec2,
+    pub angle_degrees: f64,
+    pub length: f64,
+    pub works_reverse: bool
+}
+
 impl Wall {
     pub fn new(left_point: Vec2, right_point: Vec2, works_reverse: bool) -> Self {
         let inline = (left_point - right_point).normalize();
@@ -28,6 +40,14 @@ impl Wall {
             inline,
             length: (right_point - left_point).norm(),
             works_reverse
+        }
+    }
+
+    pub fn from_easy_wall(easy_wall: EasyWall) -> Self {
+        if easy_wall.is_line {
+            Self::new(easy_wall.left_point, easy_wall.right_point, easy_wall.works_reverse)
+        } else {
+            Self::from_origin(easy_wall.origin, easy_wall.length, easy_wall.angle_degrees, easy_wall.works_reverse)
         }
     }
 

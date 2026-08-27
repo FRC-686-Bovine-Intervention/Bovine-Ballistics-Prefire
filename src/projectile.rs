@@ -1,6 +1,6 @@
 use serde::Deserialize;
 
-use crate::{vec2::Vec2, wall::Wall};
+use crate::{vec2::Vec2, wall::{EasyWall, Wall}};
 
 #[derive(Copy, Clone)]
 #[derive(Deserialize, Debug)]
@@ -19,6 +19,28 @@ pub struct Environment {
     pub g: f64,
     pub success_walls: Vec<Wall>,
     pub failure_walls: Vec<Wall>
+}
+
+#[derive(Clone)]
+#[derive(Deserialize, Debug)]
+pub struct EasyEnvironment {
+    pub air_density: f64,
+    pub g: f64,
+    pub success_walls: Vec<EasyWall>,
+    pub failure_walls: Vec<EasyWall>
+}
+
+impl Environment {
+    pub fn from_easy_environment(easy_environment: EasyEnvironment) -> Self {
+        let success_walls = easy_environment.success_walls.into_iter().map(|easy_wall| Wall::from_easy_wall(easy_wall)).collect();
+        let failure_walls = easy_environment.failure_walls.into_iter().map(|easy_wall| Wall::from_easy_wall(easy_wall)).collect();
+        Self {
+            air_density: easy_environment.air_density,
+            g: easy_environment.g,
+            success_walls,
+            failure_walls
+        }
+    }
 }
 
 #[derive(Clone)]

@@ -4,7 +4,7 @@ use nalgebra::{DMatrix, DVector, SVD};
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 use serde::{Deserialize, Serialize};
 
-use crate::{projectile::{Environment, FlyingProjectile, Projectile}, vec2::Vec2};
+use crate::{projectile::{EasyEnvironment, Environment, FlyingProjectile, Projectile}, vec2::Vec2};
 
 mod vec2;
 mod wall;
@@ -141,7 +141,7 @@ fn simulate(robot_x: f64, robot_vx: f64, angle_degs: f64, flywheel_speed: f64, i
     let angle_unit_vector = Vec2::new(angle_rads.sin(), angle_rads.cos());
     let launch_vector = angle_unit_vector * get_ball_exit_velo(flywheel_speed, &internal_config.config) + Vec2::new(robot_vx, 0.0);
 
-    let mut obj = FlyingProjectile::new(internal_config.gameconfig.projectile, internal_config.gameconfig.environment.clone(),find_launch_pos(robot_x, angle_degs, internal_config), launch_vector);
+    let mut obj = FlyingProjectile::new(internal_config.gameconfig.projectile, Environment::from_easy_environment(internal_config.gameconfig.environment.clone()),find_launch_pos(robot_x, angle_degs, internal_config), launch_vector);
 
     while !obj.dead {
         obj.update(0.01);
@@ -241,7 +241,6 @@ fn fit_two_variable_3rd_degree<F>(
     let y_mean = trajectories.iter().map(|t| t.initVX).sum::<f64>() / n as f64;
     let z_mean = trajectories.iter().map(|t| y_selector(t)).sum::<f64>() / n as f64;
 
-    // ----------- Compute RMS scales around mean -----------
     let mut x_scale = (trajectories.iter().map(|t| (t.initX - x_mean).powi(2)).sum::<f64>() / n as f64).sqrt();
     let mut y_scale = (trajectories.iter().map(|t| (t.initVX - y_mean).powi(2)).sum::<f64>() / n as f64).sqrt();
     let mut z_scale = (trajectories.iter().map(|t| (y_selector(t) - z_mean).powi(2)).sum::<f64>() / n as f64).sqrt();
@@ -250,7 +249,6 @@ fn fit_two_variable_3rd_degree<F>(
     if y_scale == 0.0 { y_scale = 1.0; }
     if z_scale == 0.0 { z_scale = 1.0; }
 
-    // ----------- Build normalized design matrix -----------
     let mut a_data = vec![0.0f64; n * M];
     let mut b_data = vec![0.0f64; n];
 
@@ -276,7 +274,6 @@ fn fit_two_variable_3rd_degree<F>(
     let a = DMatrix::from_row_slice(n, M, &a_data);
     let b = DVector::from_vec(b_data);
 
-    // ----------- Solve via SVD -----------
     let svd = SVD::new(a.clone(), true, true);
     let singular_values = &svd.singular_values;
     let condition = singular_values[0] / singular_values[singular_values.len() - 1];
@@ -375,7 +372,7 @@ struct ShooterConfig {
 #[derive(Deserialize, Debug)]
 struct GameConfig {
     projectile: Projectile,
-    environment: Environment,
+    environment: EasyEnvironment,
 }
 
 #[derive(Debug, Clone, Serialize)]
