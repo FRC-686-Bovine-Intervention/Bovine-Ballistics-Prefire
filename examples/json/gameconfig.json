@@ -1,0 +1,125 @@
+{
+    "projectile" : {
+        "r" : 0.075057,
+        "area" : 0.0176983295,
+        "resistance_coefficient" : 0.47,
+        "magnus_coefficient" : 0.0,
+        "mass" : 0.226
+    },
+    "environment" : {
+        "air_density" : 1.225,
+        "g" : 9.81,
+        "success_walls" : [
+            {
+                "is_line" : false,
+                "left_point" : {
+                    "x" : 0.0,
+                    "y" : 0.0
+                },
+                "right_point" : {
+                    "x" : 0.0,
+                    "y" : 0.0
+                },
+                "origin" : {
+                    "x" : 0.0,
+                    "y" : 1.4388
+                },
+                "angle_degrees" : 0.0,
+                "length" : 0.605,
+                "works_reverse" : true
+            }
+        ],
+        "failure_walls" : [
+            {
+                "is_line" : true,
+                "left_point" : {
+                    "x" : 200.0,
+                    "y" : 0.0
+                },
+                "right_point" : {
+                    "x" : -200.0,
+                    "y" : 0.0
+                },
+                "origin" : {
+                    "x" : 0.0,
+                    "y" : 0.0
+                },
+                "angle_degrees" : 0.0,
+                "length" : 0.0,
+                "works_reverse" : true
+            },
+            {
+                "is_line" : false,
+                "left_point" : {
+                    "x" : 0.0,
+                    "y" : 0.0
+                },
+                "right_point" : {
+                    "x" : 0.0,
+                    "y" : 0.0
+                },
+                "origin" : {
+                    "x" : -0.415,
+                    "y" : 1.6288
+                },
+                "angle_degrees" : 30.0,
+                "length" : 0.47,
+                "works_reverse" : true
+            },
+            {
+                "is_line" : false,
+                "left_point" : {
+                    "x" : 0.0,
+                    "y" : 0.0
+                },
+                "right_point" : {
+                    "x" : 0.0,
+                    "y" : 0.0
+                },
+                "origin" : {
+                    "x" : 0.415,
+                    "y" : 1.6288
+                },
+                "angle_degrees" : -30.0,
+                "length" : 0.47,
+                "works_reverse" : true
+            },
+            {
+                "is_line" : false,
+                "left_point" : {
+                    "x" : 0.0,
+                    "y" : 0.0
+                },
+                "right_point" : {
+                    "x" : 0.0,
+                    "y" : 0.0
+                },
+                "origin" : {
+                    "x" : -0.844144,
+                    "y" : 0.6919005
+                },
+                "angle_degrees" : 90.0,
+                "length" : 1.383801,
+                "works_reverse" : true
+            },
+            {
+                "is_line" : false,
+                "left_point" : {
+                    "x" : 0.0,
+                    "y" : 0.0
+                },
+                "right_point" : {
+                    "x" : 0.0,
+                    "y" : 0.0
+                },
+                "origin" : {
+                    "x" : 0.844144,
+                    "y" : 0.6919005
+                },
+                "angle_degrees" : 90.0,
+                "length" : 1.383801,
+                "works_reverse" : true
+            }
+        ]
+    }
+}
