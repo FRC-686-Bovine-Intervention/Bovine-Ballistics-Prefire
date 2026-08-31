@@ -1,8 +1,0 @@
-/home/ladle/Documents/Programming/FRC/Bovine-Ballistics-Prefire/Headless/Headless/bin/Release/net10.0/linux-x64/publish/Headless
-/home/ladle/Documents/Programming/FRC/Bovine-Ballistics-Prefire/Headless/Headless/bin/Release/net10.0/linux-x64/publish/Headless.dll
-/home/ladle/Documents/Programming/FRC/Bovine-Ballistics-Prefire/Headless/Headless/bin/Release/net10.0/linux-x64/publish/Headless.deps.json
-/home/ladle/Documents/Programming/FRC/Bovine-Ballistics-Prefire/Headless/Headless/bin/Release/net10.0/linux-x64/publish/Headless.runtimeconfig.json
-/home/ladle/Documents/Programming/FRC/Bovine-Ballistics-Prefire/Headless/Headless/bin/Release/net10.0/linux-x64/publish/Headless.pdb
-/home/ladle/Documents/Programming/FRC/Bovine-Ballistics-Prefire/Headless/Headless/bin/Release/net10.0/linux-x64/publish/Aether.Physics2D.dll
-/home/ladle/Documents/Programming/FRC/Bovine-Ballistics-Prefire/Headless/Headless/bin/Release/net10.0/linux-x64/publish/MathNet.Numerics.dll
-/home/ladle/Documents/Programming/FRC/Bovine-Ballistics-Prefire/Headless/Headless/bin/Release/net10.0/linux-x64/publish/Newtonsoft.Json.dll
